@@ -72,12 +72,7 @@ python scripts/genome-annotation.py --seq data/CP020603.1.fa --kaamer_res data/C
 ## Metagenomics profiling (gut metagenome)
 
 For the metagenomic demo, we are going to download one read from a gut metagenome publish by Nielsen
-et al.[^1] and make the profiling based on the Mgnify database of the human gut [^2].
-
-[^1]: Nielsen, H. B., Almeida, M., Juncker, A. S., Rasmussen, S., Li, J., Sunagawa, S., … MetaHIT Consortium. (2014). Identification and assembly of genomes and genetic elements in complex metagenomic samples without using reference genomes. Nature Biotechnology, 32(8), 822–828. https://doi.org/10.1038/nbt.2939
-
-[^2]: Mitchell, A. L., Almeida, A., Beracochea, M., Boland, M., Burgin, J., Cochrane, G., … Finn, R. D. (2019). MGnify: the microbiome analysis resource in 2020. Nucleic Acids Research. https://doi.org/10.1093/nar/gkz1035
-
+et al.[1] and make the profiling based on the Mgnify database of the human gut [2].
 
 Downloading the uhgp-90 database can take a while so expect this demo to be longer than usual.
 
@@ -104,3 +99,6 @@ kaamer -search -t fastq -i data/mg-reads.fastq.gz -o data/mg-reads.ann.tsv -ann
 
 ```
  
+[1]: Nielsen, H. B., Almeida, M., Juncker, A. S., Rasmussen, S., Li, J., Sunagawa, S., … MetaHIT Consortium. (2014). Identification and assembly of genomes and genetic elements in complex metagenomic samples without using reference genomes. Nature Biotechnology, 32(8), 822–828. https://doi.org/10.1038/nbt.2939
+
+[2]: Mitchell, A. L., Almeida, A., Beracochea, M., Boland, M., Burgin, J., Cochrane, G., … Finn, R. D. (2019). MGnify: the microbiome analysis resource in 2020. Nucleic Acids Research. https://doi.org/10.1093/nar/gkz1035
