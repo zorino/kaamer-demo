@@ -1,6 +1,6 @@
-# kAAmer bacterial analyses
+# kAAmer demo
 
-Bacterial genomics analyses demonstration which uses kAAmer has the database engine.
+Typical bacterial genomics analyses demonstration which uses kAAmer has the database engine.
 
 You first need to install kAAmer: see https://zorino.github.io/kaamer.
 
@@ -98,7 +98,7 @@ kaamer -search -t fastq -i data/mg-reads.fastq.gz -o data/mg-reads.ann.tsv -ann
 
 
 ```
- 
+
 [1]: Nielsen, H. B., Almeida, M., Juncker, A. S., Rasmussen, S., Li, J., Sunagawa, S., … MetaHIT Consortium. (2014). Identification and assembly of genomes and genetic elements in complex metagenomic samples without using reference genomes. Nature Biotechnology, 32(8), 822–828. https://doi.org/10.1038/nbt.2939
 
 [2]: Mitchell, A. L., Almeida, A., Beracochea, M., Boland, M., Burgin, J., Cochrane, G., … Finn, R. D. (2019). MGnify: the microbiome analysis resource in 2020. Nucleic Acids Research. https://doi.org/10.1093/nar/gkz1035
