@@ -38,7 +38,7 @@ kaamer-db -make -f tsv -i data/ncbi_arg/ncbi-arg_$(date +%Y-%m-%d)/ReferenceGene
 kaamer-db -server -d data/ncbi_arg.kaamer &
 
 # Wait for the database to be fully opened ...
-kaamer -search -t nt -i data/Pae_E6130952.fsa -o data/Pae_E6130952.arg.tsv -aln -ann
+kaamer -search -t nt -i data/Pae_E6130952.fa -o data/Pae_E6130952.arg.tsv -aln -ann
 
 # Analyse ARG Results
 python scripts/arg-identifier.py data/Pae_E6130952.arg.tsv > data/Pae_E6130952.arg.sum.tsv
