@@ -17,7 +17,7 @@ def parse_result(kaamer_res, identity_co, coverage_co):
         header = f.readline().rstrip().split("\t")
         header_indices = {}
 
-        for i,h in enumerate(header):
+        for i, h in enumerate(header):
             header_indices[h] = i
 
         for l in f:
@@ -29,25 +29,32 @@ def parse_result(kaamer_res, identity_co, coverage_co):
             query_uid += "__"
             query_uid += fields[header_indices["QEnd"]]
 
-            if query_uid in arg_hits and arg_hits[query_uid][header_indices["Bitscore"]] > fields[header_indices["Bitscore"]]:
-                    continue
+            if query_uid in arg_hits and arg_hits[query_uid][header_indices[
+                    "Bitscore"]] > fields[header_indices["Bitscore"]]:
+                continue
 
-            if fields[header_indices["type"]] == "AMR" and fields[header_indices["subtype"]] == "POINT":
+            if fields[header_indices["type"]] == "AMR" and fields[
+                    header_indices["subtype"]] == "POINT":
                 if float(fields[header_indices["%Identity"]]) >= 100:
                     arg_hits[query_uid] = fields
 
-            if fields[header_indices["type"]] == "AMR" and fields[header_indices["subtype"]] == "AMR":
-                coverage = 100*float(fields[header_indices["AlnLength"]])/float(fields[header_indices["sequence_length"]])
-                if float(fields[header_indices["%Identity"]]) >= identity_co and coverage >= coverage_co:
+            if fields[header_indices["type"]] == "AMR" and fields[
+                    header_indices["subtype"]] == "AMR":
+                coverage = 100 * float(
+                    fields[header_indices["AlnLength"]]) / float(
+                        fields[header_indices["sequence_length"]])
+                if float(fields[header_indices["%Identity"]]
+                         ) >= identity_co and coverage >= coverage_co:
                     arg_hits[query_uid] = fields
 
     return header, arg_hits
+
 
 # Main #
 if __name__ == "__main__":
 
     usage = """
-    python arg-identifier.py <kaamer ncbi_arg output> <%identity def=90> <%coverage def=90>
+    python arg-identifier.py <kaamer ncbi_arg output> [%identity def=90] [%coverage def=90]
 
     POINT mutation require 100% identity
 
@@ -59,8 +66,8 @@ if __name__ == "__main__":
         print(usage)
         exit(1)
 
-    identity=90
-    coverage=90
+    identity = 90
+    coverage = 90
     if len(sys.argv) > 2:
         identity = float(sys.argv[2])
     if len(sys.argv) > 3:
