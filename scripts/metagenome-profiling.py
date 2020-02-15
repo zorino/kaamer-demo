@@ -88,8 +88,10 @@ def process_result(fastq_file, res_file, output, min_identity, min_klength):
         kegg_module = lA[17].split(",")
         increment_counter(kegg_module_counter, kegg_module)
 
-        cog = lA[18]
-        increment_counter(cog_counter, [cog])
+        cog = list(lA[18])
+        if len(cog) < 1:
+            cog = [""]
+        increment_counter(cog_counter, cog)
 
     print_results(
         {
