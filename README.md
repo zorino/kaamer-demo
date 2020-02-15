@@ -77,7 +77,7 @@ et al.[1] and make the profiling based on the Mgnify database of the human gut [
 
 Downloading the uhgp-90 database can take a while so expect this demo to be longer than usual.
 
-Also running the kAAmer database require a fair amount of RAM expect plan at least for 16GB.
+Also running the kAAmer database require a fair amount of RAM plan for at least 16 GB.
 
 ``` shell
 # Go to this repo directory
@@ -88,16 +88,16 @@ wget https://bacteriapps.genome.ulaval.ca/dbdwl/uhgp-90_2019-09.kaamer.tgz -O da
 tar xvf data/uhgp-90-2019_09.kaamer.tgz -C data/
 
 # Download demo gut metagenome fastq 
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR209/ERR209293/ERR209293_1.fastq.gz -O data/mg-read.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR209/ERR209293/ERR209293_1.fastq.gz -O data/mg-reads.fastq.gz
 
 # Start the Mgnify Human Gut kaamer database...
 kaamer-db -server -d data/uhgp-90_2019-09.kaamer &
 
 # Wait for the database to be fully opened ...
-kaamer -search -t fastq -m 3 -i data/mg-read.fastq.gz -o data/mg-reads.ann.tsv -ann
+kaamer -search -t fastq -m 3 -i data/mg-reads.fastq.gz -o data/mg-reads.ann.tsv -ann
 
 # Analyse 
-python scripts/microbiome-profiling.py -i data/mg-reads.ann.tsv -o data/mg-reads.res.tsv
+python scripts/metagenome-profiling.py data/mg-reads.fastq.gz data/mg-reads.ann.tsv data/mg-reads-results
 
 ```
 
