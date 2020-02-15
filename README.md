@@ -1,6 +1,6 @@
 # kAAmer demo
 
-Typical bacterial genomics analyses demonstration which uses kAAmer has the database engine.
+This demo include typical bacterial genomics analyses which uses kAAmer has the database engine.
 
 You first need to install kAAmer: see https://zorino.github.io/kaamer.
 
@@ -12,7 +12,8 @@ git clone https://github.com/zorino/kaamer-demo.git
 cd kaamer-bacterial-analyses
 ```
 
-## Antibiotic Resistance Gene identification
+
+## Antibiotic resistance gene identification
 
 For a demonstration purpose we uploaded in this repo a pan-resistant strain of Pseudomonas
 aeruginosa [E6130952](https://www.ncbi.nlm.nih.gov/biosample/SAMN06349407) ([chromosome](https://www.ncbi.nlm.nih.gov/nuccore/CP020603.1) + [plasmid](https://www.ncbi.nlm.nih.gov/nuccore/CP020602.1)).
@@ -45,7 +46,7 @@ python scripts/arg-identifier.py data/Pae_E6130952.arg.tsv > data/Pae_E6130952.a
 
 ```
 
-## Bacterial Genome Annotation
+## Bacterial genome annotation
 
 We are going to use the chromosome of the Pseudomonas aeruginosa E6130952 strain (CP020603.1) for automatic
 annotation using kAAmer.
@@ -76,29 +77,30 @@ et al.[1] and make the profiling based on the Mgnify database of the human gut [
 
 Downloading the uhgp-90 database can take a while so expect this demo to be longer than usual.
 
+Also running the kAAmer database require a fair amount of RAM expect plan at least for 16GB.
 
 ``` shell
 # Go to this repo directory
 cd kaamer-demo
 
 # Download prebuilt kAAmer database of Mgnify for gut metagenome profiling
-wget https://bacteriapps.genome.ulaval.ca/dbdwl/uhgp-90-2019_09.kaamer.tgz -O data/uhgp-90-2019_09.kaamer.tgz
+wget https://bacteriapps.genome.ulaval.ca/dbdwl/uhgp-90_2019-09.kaamer.tgz -O data/uhgp-90_2019-09.kaamer.tgz
 tar xvf data/uhgp-90-2019_09.kaamer.tgz -C data/
 
 # Download demo gut metagenome fastq 
 wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR209/ERR209293/ERR209293_1.fastq.gz -O data/mg-read.fastq.gz
 
 # Start the Mgnify Human Gut kaamer database...
-kaamer-db -server -d data/uhgp-90-2019_09.kaamer &
+kaamer-db -server -d data/uhgp-90_2019-09.kaamer &
 
 # Wait for the database to be fully opened ...
-kaamer -search -t fastq -i data/mg-reads.fastq.gz -o data/mg-reads.ann.tsv -ann
+kaamer -search -t fastq -m 3 -i data/mg-read.fastq.gz -o data/mg-reads.ann.tsv -ann
 
 # Analyse 
-
+python scripts/microbiome-profiling.py -i data/mg-reads.ann.tsv -o data/mg-reads.res.tsv
 
 ```
 
-[1]: Nielsen, H. B., Almeida, M., Juncker, A. S., Rasmussen, S., Li, J., Sunagawa, S., … MetaHIT Consortium. (2014). Identification and assembly of genomes and genetic elements in complex metagenomic samples without using reference genomes. Nature Biotechnology, 32(8), 822–828. https://doi.org/10.1038/nbt.2939
+[1] Nielsen, H. B., Almeida, M., Juncker, A. S., Rasmussen, S., Li, J., Sunagawa, S., … MetaHIT Consortium. (2014). Identification and assembly of genomes and genetic elements in complex metagenomic samples without using reference genomes. Nature Biotechnology, 32(8), 822–828. https://doi.org/10.1038/nbt.2939
 
-[2]: Mitchell, A. L., Almeida, A., Beracochea, M., Boland, M., Burgin, J., Cochrane, G., … Finn, R. D. (2019). MGnify: the microbiome analysis resource in 2020. Nucleic Acids Research. https://doi.org/10.1093/nar/gkz1035
+[2] Mitchell, A. L., Almeida, A., Beracochea, M., Boland, M., Burgin, J., Cochrane, G., … Finn, R. D. (2019). MGnify: the microbiome analysis resource in 2020. Nucleic Acids Research. https://doi.org/10.1093/nar/gkz1035
