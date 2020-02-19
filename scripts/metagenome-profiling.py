@@ -160,7 +160,7 @@ def print_results(results, output):
             f.write("%s\t%d\t%f\n" % (k, v, (v / results["total_reads_hits"])))
 
     # taxon result
-    output_taxon = output + "/res.taxon.tsv"
+    output_taxon = output + "/res.taxa.tsv"
     sorted_taxon_counter = sorted(results["taxon_counter"].items(),
                                   key=lambda x: x[1],
                                   reverse=True)
