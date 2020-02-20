@@ -139,12 +139,16 @@ def print_results(results, output):
                                key=lambda x: x[1],
                                reverse=True)
     with open(output_go, "w") as f:
-        f.write("GO Number\tNb Reads\t% Reads\n")
+        f.write("GO Number\tReadsCount\tRelAbun\tRelAbun_Known\n")
+        unknown_count = sorted_go_counter[""]
+        known_count = results["total_reads_hits"] - unknown_count
         for k, v in sorted_go_counter:
-            # f.write(json.dumps(sorted_go_counter))
+            relab_known = v / known_count
             if k == "":
                 k = "None"
-            f.write("%s\t%d\t%f\n" % (k, v, (v / results["total_reads_hits"])))
+                relab_known = 0
+            f.write("%s\t%d\t%f\n" %
+                    (k, v, (v / results["total_reads_hits"]), relab_known))
 
     # ec result
     output_ec = output + "/res.ec.tsv"
@@ -152,12 +156,16 @@ def print_results(results, output):
                                key=lambda x: x[1],
                                reverse=True)
     with open(output_ec, "w") as f:
-        f.write("EC Number\tNb Reads\t% Reads\n")
+        f.write("EC Number\tReadsCount\tRelAbun\tRelAbun_Known\n")
+        unknown_count = sorted_ec_counter[""]
+        known_count = results["total_reads_hits"] - unknown_count
         for k, v in sorted_ec_counter:
-            # f.write(json.dumps(sorted_ec_counter))
+            relab_known = v / known_count
             if k == "":
                 k = "None"
-            f.write("%s\t%d\t%f\n" % (k, v, (v / results["total_reads_hits"])))
+                relab_known = 0
+            f.write("%s\t%d\t%f\n" %
+                    (k, v, (v / results["total_reads_hits"]), relab_known))
 
     # taxon result
     output_taxon = output + "/res.taxa.tsv"
@@ -165,12 +173,16 @@ def print_results(results, output):
                                   key=lambda x: x[1],
                                   reverse=True)
     with open(output_taxon, "w") as f:
-        f.write("Taxon\tNb Reads\t% Reads\n")
+        f.write("Taxon\tReadsCount\tRelAbun\tRelAbun_Known\n")
+        unknown_count = sorted_taxon_counter[""]
+        known_count = results["total_reads_hits"] - unknown_count
         for k, v in sorted_taxon_counter:
-            # f.write(json.dumps(sorted_taxon_counter))
+            relab_known = v / known_count
             if k == "":
                 k = "None"
-            f.write("%s\t%d\t%f\n" % (k, v, (v / results["total_reads_hits"])))
+                relab_known = 0
+            f.write("%s\t%d\t%f\n" %
+                    (k, v, (v / results["total_reads_hits"]), relab_known))
 
     # kegg_pathway result
     output_kegg_pathway = output + "/res.kegg_pathway.tsv"
@@ -179,12 +191,16 @@ def print_results(results, output):
         key=lambda x: x[1],
         reverse=True)
     with open(output_kegg_pathway, "w") as f:
-        f.write("Kegg_Pathway\tNb Reads\t% Reads\n")
+        f.write("Kegg_Pathway\tReadsCount\tRelAbun\tRelAbun_Known\n")
+        unknown_count = sorted_kegg_pathway_counter[""]
+        known_count = results["total_reads_hits"] - unknown_count
         for k, v in sorted_kegg_pathway_counter:
-            # f.write(json.dumps(sorted_kegg_pathway_counter))
+            relab_known = v / known_count
             if k == "":
                 k = "None"
-            f.write("%s\t%d\t%f\n" % (k, v, (v / results["total_reads_hits"])))
+                relab_known = 0
+            f.write("%s\t%d\t%f\n" %
+                    (k, v, (v / results["total_reads_hits"]), relab_known))
 
     # kegg_module result
     output_kegg_module = output + "/res.kegg_module.tsv"
@@ -192,12 +208,16 @@ def print_results(results, output):
                                         key=lambda x: x[1],
                                         reverse=True)
     with open(output_kegg_module, "w") as f:
-        f.write("Kegg_Module\tNb Reads\t% Reads\n")
+        f.write("Kegg_Module\tReadsCount\tRelAbun\tRelAbun_Known\n")
+        unknown_count = sorted_kegg_module_counter[""]
+        known_count = results["total_reads_hits"] - unknown_count
         for k, v in sorted_kegg_module_counter:
-            # f.write(json.dumps(sorted_kegg_module_counter))
+            relab_known = v / known_count
             if k == "":
                 k = "None"
-            f.write("%s\t%d\t%f\n" % (k, v, (v / results["total_reads_hits"])))
+                relab_known = 0
+            f.write("%s\t%d\t%f\n" %
+                    (k, v, (v / results["total_reads_hits"]), relab_known))
 
     # cog result
     output_cog = output + "/res.cog.tsv"
@@ -205,12 +225,16 @@ def print_results(results, output):
                                 key=lambda x: x[1],
                                 reverse=True)
     with open(output_cog, "w") as f:
-        f.write("Cog\tNb Reads\t% Reads\n")
+        f.write("COG\tReadsCount\tRelAbun\tRelAbun_Known\n")
+        unknown_count = sorted_cog_counter[""]
+        known_count = results["total_reads_hits"] - unknown_count
         for k, v in sorted_cog_counter:
-            # f.write(json.dumps(sorted_cog_counter))
+            relab_known = v / known_count
             if k == "":
                 k = "None"
-            f.write("%s\t%d\t%f\n" % (k, v, (v / results["total_reads_hits"])))
+                relab_known = 0
+            f.write("%s\t%d\t%f\n" %
+                    (k, v, (v / results["total_reads_hits"]), relab_known))
 
 
 # Main #
