@@ -1,0 +1,27 @@
+title	Graphlan Example
+title_font_size	10
+start_rotation	70
+annotation_background_alpha	0.15
+clade_separation	0.35
+annotation_legend_font_size	5	
+annotation_font_size	5
+annotation_font_stretch	0
+clade_marker_size	3
+branch_bracket_depth	0.5
+branch_thickness	1.2
+clade_marker_edge_width	1
+
+# sk__Archaea #008744 green
+sk__Archaea	annotation_background_color	#008744
+
+# sk__Bacteria #d62d20 red
+#sk__Bacteria	annotation_background_color	#d62d20
+sk__Bacteria.p__Firmicutes	annotation_background_color	#d62d20
+sk__Bacteria.p__Firmicutes	annotation	Firmicutes
+
+# sk__Eukaryota #0057e7 blue
+sk__Eukaryota	annotation_background_color	#0057e7
+
+# sk__Viruses #ffa700 orange
+sk__Viruses	annotation_background_color	#ffa700
+
