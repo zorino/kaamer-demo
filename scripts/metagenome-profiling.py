@@ -135,105 +135,140 @@ def print_results(results, output):
 
     # go result
     output_go = output + "/res.go.tsv"
-    sorted_go_counter = sorted(results["go_counter"].items(),
-                               key=lambda x: x[1],
-                               reverse=True)
+    sorted_go_counter = {
+        k: v
+        for k, v in sorted(results["go_counter"].items(),
+                           key=lambda item: item[1],
+                           reverse=True)
+    }
     with open(output_go, "w") as f:
         f.write("GO Number\tReadsCount\tRelAbun\tRelAbun_Known\n")
-        unknown_count = sorted_go_counter[""]
+        if "" in sorted_go_counter:
+            unknown_count = sorted_go_counter[""]
+        else:
+            unknown_count = 0
         known_count = results["total_reads_hits"] - unknown_count
-        for k, v in sorted_go_counter:
+        for k, v in sorted_go_counter.items():
             relab_known = v / known_count
             if k == "":
                 k = "None"
                 relab_known = 0
-            f.write("%s\t%d\t%f\n" %
+            f.write("%s\t%d\t%f\t%f\n" %
                     (k, v, (v / results["total_reads_hits"]), relab_known))
 
     # ec result
     output_ec = output + "/res.ec.tsv"
-    sorted_ec_counter = sorted(results["ec_counter"].items(),
-                               key=lambda x: x[1],
-                               reverse=True)
+    sorted_ec_counter = {
+        k: v
+        for k, v in sorted(results["ec_counter"].items(),
+                           key=lambda item: item[1],
+                           reverse=True)
+    }
     with open(output_ec, "w") as f:
         f.write("EC Number\tReadsCount\tRelAbun\tRelAbun_Known\n")
-        unknown_count = sorted_ec_counter[""]
+        if "" in sorted_ec_counter:
+            unknown_count = sorted_ec_counter[""]
+        else:
+            unknown_count = 0
         known_count = results["total_reads_hits"] - unknown_count
-        for k, v in sorted_ec_counter:
+        for k, v in sorted_ec_counter.items():
             relab_known = v / known_count
             if k == "":
                 k = "None"
                 relab_known = 0
-            f.write("%s\t%d\t%f\n" %
+            f.write("%s\t%d\t%f\t%f\n" %
                     (k, v, (v / results["total_reads_hits"]), relab_known))
 
     # taxon result
     output_taxon = output + "/res.taxa.tsv"
-    sorted_taxon_counter = sorted(results["taxon_counter"].items(),
-                                  key=lambda x: x[1],
-                                  reverse=True)
+    sorted_taxon_counter = {
+        k: v
+        for k, v in sorted(results["taxon_counter"].items(),
+                           key=lambda item: item[1],
+                           reverse=True)
+    }
     with open(output_taxon, "w") as f:
         f.write("Taxon\tReadsCount\tRelAbun\tRelAbun_Known\n")
-        unknown_count = sorted_taxon_counter[""]
+        if "" in sorted_taxon_counter:
+            unknown_count = sorted_taxon_counter[""]
+        else:
+            unknown_count = 0
         known_count = results["total_reads_hits"] - unknown_count
-        for k, v in sorted_taxon_counter:
+        for k, v in sorted_taxon_counter.items():
             relab_known = v / known_count
             if k == "":
                 k = "None"
                 relab_known = 0
-            f.write("%s\t%d\t%f\n" %
+            f.write("%s\t%d\t%f\t%f\n" %
                     (k, v, (v / results["total_reads_hits"]), relab_known))
 
     # kegg_pathway result
     output_kegg_pathway = output + "/res.kegg_pathway.tsv"
-    sorted_kegg_pathway_counter = sorted(
-        results["kegg_pathway_counter"].items(),
-        key=lambda x: x[1],
-        reverse=True)
+    sorted_kegg_pathway_counter = {
+        k: v
+        for k, v in sorted(results["kegg_pathway_counter"].items(),
+                           key=lambda item: item[1],
+                           reverse=True)
+    }
     with open(output_kegg_pathway, "w") as f:
         f.write("Kegg_Pathway\tReadsCount\tRelAbun\tRelAbun_Known\n")
-        unknown_count = sorted_kegg_pathway_counter[""]
+        if "" in sorted_kegg_pathway_counter:
+            unknown_count = sorted_kegg_pathway_counter[""]
+        else:
+            unknown_count = 0
         known_count = results["total_reads_hits"] - unknown_count
-        for k, v in sorted_kegg_pathway_counter:
+        for k, v in sorted_kegg_pathway_counter.items():
             relab_known = v / known_count
             if k == "":
                 k = "None"
                 relab_known = 0
-            f.write("%s\t%d\t%f\n" %
+            f.write("%s\t%d\t%f\t%f\n" %
                     (k, v, (v / results["total_reads_hits"]), relab_known))
 
     # kegg_module result
     output_kegg_module = output + "/res.kegg_module.tsv"
-    sorted_kegg_module_counter = sorted(results["kegg_module_counter"].items(),
-                                        key=lambda x: x[1],
-                                        reverse=True)
+    sorted_kegg_module_counter = {
+        k: v
+        for k, v in sorted(results["kegg_module_counter"].items(),
+                           key=lambda item: item[1],
+                           reverse=True)
+    }
     with open(output_kegg_module, "w") as f:
         f.write("Kegg_Module\tReadsCount\tRelAbun\tRelAbun_Known\n")
-        unknown_count = sorted_kegg_module_counter[""]
+        if "" in sorted_kegg_module_counter:
+            unknown_count = sorted_kegg_module_counter[""]
+        else:
+            unknown_count = 0
         known_count = results["total_reads_hits"] - unknown_count
-        for k, v in sorted_kegg_module_counter:
+        for k, v in sorted_kegg_module_counter.items():
             relab_known = v / known_count
             if k == "":
                 k = "None"
                 relab_known = 0
-            f.write("%s\t%d\t%f\n" %
+            f.write("%s\t%d\t%f\t%f\n" %
                     (k, v, (v / results["total_reads_hits"]), relab_known))
 
     # cog result
     output_cog = output + "/res.cog.tsv"
-    sorted_cog_counter = sorted(results["cog_counter"].items(),
-                                key=lambda x: x[1],
-                                reverse=True)
+    sorted_cog_counter = {
+        k: v
+        for k, v in sorted(results["cog_counter"].items(),
+                           key=lambda item: item[1],
+                           reverse=True)
+    }
     with open(output_cog, "w") as f:
         f.write("COG\tReadsCount\tRelAbun\tRelAbun_Known\n")
-        unknown_count = sorted_cog_counter[""]
+        if "" in sorted_cog_counter:
+            unknown_count = sorted_cog_counter[""]
+        else:
+            unknown_count = 0
         known_count = results["total_reads_hits"] - unknown_count
-        for k, v in sorted_cog_counter:
+        for k, v in sorted_cog_counter.items():
             relab_known = v / known_count
             if k == "":
                 k = "None"
                 relab_known = 0
-            f.write("%s\t%d\t%f\n" %
+            f.write("%s\t%d\t%f\t%f\n" %
                     (k, v, (v / results["total_reads_hits"]), relab_known))
 
 
