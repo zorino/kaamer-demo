@@ -277,6 +277,8 @@ if __name__ == "__main__":
 
     usage = """
 python metagenome-profiling.py <fastq> <kaamer-res> <output-dir> [%identity def=90] [min_query_klength def=10]
+
+# Need to have zcat and wc CLI program (linux / unix)
 """
 
     if len(sys.argv) < 4:
