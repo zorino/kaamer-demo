@@ -56,7 +56,8 @@ annotation using kAAmer.
 cd kaamer-demo
 
 # Download prebuilt kAAmer database for the Pseudomonadaceae family.
-wget xxx
+wget https://kaamer.genome.ulaval.ca/dwl/Pseudomonadaceae.kaamer.tgz
+tar xvf Pseudomonadaceae.kaamer.tgz
 
 # Search for ARG in genome with kaamer
 kaamer-db -server -d data/Pseudomonadaceae.kaamer &
@@ -84,7 +85,7 @@ Also running the kAAmer database require a fair amount of RAM plan for at least 
 cd kaamer-demo
 
 # Download prebuilt kAAmer database of Mgnify for gut metagenome profiling
-wget https://bacteriapps.genome.ulaval.ca/dbdwl/uhgp-90_2019-09.kaamer.tgz -O data/uhgp-90_2019-09.kaamer.tgz
+wget https://kaamer.genome.ulaval.ca/dwl/uhgp-90_2019-09.kaamer.tgz -O data/uhgp-90_2019-09.kaamer.tgz
 tar xvf data/uhgp-90-2019_09.kaamer.tgz -C data/
 
 # Download demo gut metagenome fastq 
