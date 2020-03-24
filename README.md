@@ -1,4 +1,4 @@
-# kAAmer Analyses with demonstration
+# kAAmer analyses with demonstration
 
 This project includes python scripts for different bacterial genomics / metagenomics analyses.
 
