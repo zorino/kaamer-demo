@@ -1,6 +1,8 @@
-# kAAmer demo
+# kAAmer Analyses with demonstration
 
-This demo include typical bacterial genomics analyses which uses kAAmer has the database engine.
+This project includes python scripts for different bacterial genomics / metagenomics analyses.
+
+You can follow this guide as a demo for typical bacterial genomics analyses which uses kAAmer has the database engine.
 
 You first need to install kAAmer: see https://zorino.github.io/kaamer.
 
@@ -8,7 +10,7 @@ Another project, ([microbe-dbs](https://github.com/zorino/microbe-dbs.git)), is 
 
 ``` shell
 # Clone this repo
-git clone https://github.com/zorino/kaamer-demo.git
+git clone https://github.com/zorino/kaamer_analyses.git
 cd kaamer-bacterial-analyses
 ```
 
@@ -24,7 +26,7 @@ genes in the E6130952 strain.
 
 ``` shell
 # Go to this repo directory
-cd kaamer-demo
+cd kaamer_analyses
 
 # Download ncbi_arg database..
 git clone https://github.com/zorino/microbe-dbs.git
@@ -53,7 +55,7 @@ annotation using kAAmer.
 
 ``` shell
 # Go to this repo directory
-cd kaamer-demo
+cd kaamer_analyses
 
 # Download prebuilt kAAmer database for the Pseudomonadaceae family.
 wget https://kaamer.genome.ulaval.ca/dwl/Pseudomonadaceae.kaamer.tgz
@@ -82,7 +84,7 @@ Also running the kAAmer database require a fair amount of RAM plan for at least 
 
 ``` shell
 # Go to this repo directory
-cd kaamer-demo
+cd kaamer_analyses
 
 # Download prebuilt kAAmer database of Mgnify for gut metagenome profiling
 wget https://kaamer.genome.ulaval.ca/dwl/uhgp-90_2019-09.kaamer.tgz -O data/uhgp-90_2019-09.kaamer.tgz
