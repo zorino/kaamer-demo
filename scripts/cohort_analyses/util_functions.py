@@ -23,7 +23,6 @@ import seaborn as sns
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-from itables import show
 import dtale
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -103,7 +102,6 @@ def features_stat(dd, labels):
         pvals_stats[_ft]["pval_corrected"] = pvals_corrected[1][i]
 
     pvals_stats_df = pd.DataFrame.from_dict(pvals_stats, orient='index')
-    # show(pvals_stats_df, maxBytes=0)
     dtale.show(pvals_stats_df.set_index(['ft']), notebook=True)
 
     # plot significant pvalues boxplot
