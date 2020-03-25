@@ -6,12 +6,17 @@ You can follow this guide as a demo for typical bacterial genomics analyses whic
 
 You first need to install kAAmer: see https://zorino.github.io/kaamer.
 
+You should also use conda / miniconda for the python dependencies : see https://docs.conda.io/en/latest/miniconda.html.
+
 Another project, ([microbe-dbs](https://github.com/zorino/microbe-dbs.git)), is used to download relevant databases.
 
 ``` shell
 # Clone this repo
 git clone https://github.com/zorino/kaamer_analyses.git
-cd kaamer-bacterial-analyses
+
+# Create conda environment
+conda env create -f  kaamerpy-env.yml
+conda activate kaamerpy
 ```
 
 
@@ -32,19 +37,22 @@ cd kaamer_analyses
 git clone https://github.com/zorino/microbe-dbs.git
 
 ## note that you will need python and the bio lib to run this:
-microbe-dbs/microbe-dbs ncbi_arg data/ncbi_arg
+microbe-dbs/microbe-dbs ncbi_arg demo-data/ncbi_arg
 
 # Create the kAAmer database
-kaamer-db -make -f tsv -i data/ncbi_arg/ncbi-arg_$(date +%Y-%m-%d)/ReferenceGeneCatalog.tsv -d data/ncbi_arg.kaamer
+kaamer-db -make -f tsv -i demo-data/ncbi_arg/ncbi-arg_$(date +%Y-%m-%d)/ReferenceGeneCatalog.tsv -d demo-data/ncbi_arg.kaamer
 
 # Search for ARG in genome with kaamer
-kaamer-db -server -d data/ncbi_arg.kaamer &
+kaamer-db -server -d demo-data/ncbi_arg.kaamer &
 
 # Wait for the database to be fully opened ...
-kaamer -search -t nt -i data/Pae_E6130952.fa -o data/Pae_E6130952.arg.tsv -aln -ann
+kaamer -search -t nt -i demo-data/Pae_E6130952.fa -o demo-data/Pae_E6130952.arg.tsv -aln -ann
 
 # Analyse ARG Results
-python scripts/arg-identifier.py data/Pae_E6130952.arg.tsv > data/Pae_E6130952.arg.sum.tsv
+python arg_identifier.py demo-data/Pae_E6130952.arg.tsv > demo-data/Pae_E6130952.arg.sum.tsv
+
+# Check the ARG results: demo-data/Pae_E6130952.arg.sum.tsv
+less demo-data/Pae_E6130952.arg.sum.tsv
 
 ```
 
@@ -58,17 +66,17 @@ annotation using kAAmer.
 cd kaamer_analyses
 
 # Download prebuilt kAAmer database for the Pseudomonadaceae family.
-wget https://kaamer.genome.ulaval.ca/dwl/Pseudomonadaceae.kaamer.tgz
-tar xvf Pseudomonadaceae.kaamer.tgz
+wget https://kaamer.genome.ulaval.ca/dwl/Pseudomonadaceae.kaamer.tgz -O demo-data/Pseudomonadaceae.kaamer.tgz
+tar xvf demo-data/Pseudomonadaceae.kaamer.tgz -C demo-data/
 
 # Search for ARG in genome with kaamer
-kaamer-db -server -d data/Pseudomonadaceae.kaamer &
+kaamer-db -server -d demo-data/Pseudomonadaceae.kaamer &
 
 # Wait for the database to be fully opened ...
-kaamer -search -t nt -i data/CP020603.1.fa -o data/CP020603.1.fa.ann.tsv -aln -ann
+kaamer -search -t nt -i demo-data/CP020603.1.fa -o demo-data/CP020603.1.fa.ann.tsv -aln -ann
 
 # Create GFF annotation file
-python scripts/genome-annotation.py --seq data/CP020603.1.fa --kaamer_res data/CP020603.1.fa.ann.tsv > data/CP020603.1.gff
+python genome_annotation.py --seq demo-data/CP020603.1.fa --kaamer_res demo-data/CP020603.1.fa.ann.tsv > demo-data/CP020603.1.gff
 
 ```
 
@@ -80,27 +88,27 @@ et al.[1] and make the profiling based on the Mgnify database of the human gut [
 
 Downloading the uhgp-90 database can take a while so expect this demo to be longer than usual.
 
-Also running the kAAmer database require a fair amount of RAM plan for at least 16 GB.
+Also running this kAAmer database require a fair amount of RAM, plan for at least 16 GB.
 
 ``` shell
 # Go to this repo directory
 cd kaamer_analyses
 
 # Download prebuilt kAAmer database of Mgnify for gut metagenome profiling
-wget https://kaamer.genome.ulaval.ca/dwl/uhgp-90_2019-09.kaamer.tgz -O data/uhgp-90_2019-09.kaamer.tgz
-tar xvf data/uhgp-90-2019_09.kaamer.tgz -C data/
+wget https://kaamer.genome.ulaval.ca/dwl/uhgp-90_2019-09.kaamer.tgz -O demo-data/uhgp-90_2019-09.kaamer.tgz
+tar xvf demo-data/uhgp-90-2019_09.kaamer.tgz -C demo-data/
 
 # Download demo gut metagenome fastq 
-wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR209/ERR209293/ERR209293_1.fastq.gz -O data/mg-reads.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR209/ERR209293/ERR209293_1.fastq.gz -O demo-data/mg-reads.fastq.gz
 
 # Start the Mgnify Human Gut kaamer database...
-kaamer-db -server -d data/uhgp-90_2019-09.kaamer &
+kaamer-db -server -d demo-data/uhgp-90_2019-09.kaamer &
 
 # Wait for the database to be fully opened ...
-kaamer -search -t fastq -m 3 -i data/mg-reads.fastq.gz -o data/mg-reads.ann.tsv -ann
+kaamer -search -t fastq -m 3 -i demo-data/mg-reads.fastq.gz -o demo-data/mg-reads.ann.tsv -ann
 
 # Analyse 
-python scripts/metagenome-profiling.py data/mg-reads.fastq.gz data/mg-reads.ann.tsv data/mg-reads-results
+python metagenome_profiling.py demo-data/mg-reads.fastq.gz demo-data/mg-reads.ann.tsv demo-data/mg-reads-results
 
 ```
 
