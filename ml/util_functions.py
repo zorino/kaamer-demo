@@ -444,36 +444,35 @@ def optuna_RF_accuracy(dd, labels, imbalance_ratio, n_trials):
     return model
 
 
-# def optuna_adaboost_accuracy(dd, labels, imbalance_ratio, n_trials):
-#     print(" # Optuna parameters search")
-#     data = {
-#         'x': dd.values,
-#         'y': labels.values,
-#     }
-#     optuna.logging.set_verbosity(optuna.logging.CRITICAL)
-#     pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)
-#     objective = Objective_RF_accuracy(data)
-#     study = optuna.create_study(pruner=pruner, direction='maximize')
-#     study.optimize(objective, n_trials=n_trials, n_jobs=-1)
-#     print(" # Optuna best trial score")
-#     print_obj(study.best_trial.value)
-#     print(" # Optuna best params")
-#     print_obj(study.best_params)
-#     class_weight = None
-#     if 'imbalance_ratio' != 1:
-#         class_weight = "balanced"
-#     model = AdaBoostClassifier(**study.best_params,
-#                                class_weight=class_weight)
-#     results = model_scores(data, model, 10)
-#     print_obj(results)
-#     for r, a in results.items():
-#         print("%s : %f" % (r, a.mean()))
+def optuna_SVC_accuracy(dd, labels, imbalance_ratio, n_trials):
+    print(" # Optuna parameters search")
+    data = {
+        'x': dd.values,
+        'y': labels.values,
+    }
+    optuna.logging.set_verbosity(optuna.logging.CRITICAL)
+    pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)
+    objective = Objective_SVC_accuracy(data)
+    study = optuna.create_study(pruner=pruner, direction='maximize')
+    study.optimize(objective, n_trials=n_trials, n_jobs=-1)
+    print(" # Optuna best trial score")
+    print_obj(study.best_trial.value)
+    print(" # Optuna best params")
+    print_obj(study.best_params)
+    class_weight = None
+    if 'imbalance_ratio' != 1:
+        class_weight = "balanced"
+    model = SVC(**study.best_params, class_weight=class_weight)
+    results = model_scores(data, model, 10)
+    print_obj(results)
+    for r, a in results.items():
+        print("%s : %f" % (r, a.mean()))
 
-#     y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
-#     print(" # Confusion matrix")
-#     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    print(" # Confusion matrix")
+    print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
-#     return model
+    return model
 
 
 def optuna_viz(study):

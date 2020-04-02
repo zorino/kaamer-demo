@@ -3,6 +3,7 @@ import sklearn.datasets
 import sklearn.metrics
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.svm import SVC
 import xgboost as xgb
 import lightgbm as lgb
 import catboost as cb
@@ -240,6 +241,7 @@ class Objective_catboost_accuracy(object):
 
         return accuracy
 
+
 class Objective_RF_accuracy(object):
     def __init__(self, data):
         self.data = data
@@ -265,7 +267,8 @@ class Objective_RF_accuracy(object):
 
         return accuracy
 
-class Objective_Adaboost_accuracy(object):
+
+class Objective_SVC_accuracy(object):
     def __init__(self, data):
         self.data = data
 
@@ -277,11 +280,12 @@ class Objective_Adaboost_accuracy(object):
         if 'imbalance_ratio' in self.data and self.data['imbalance_ratio'] != 1:
             class_weight = "balanced"
 
-        rf_max_depth = int(trial.suggest_loguniform('rf_max_depth', 2, 32))
-        rf_classifier = AdaBoostClassifier(n_estimators=100,
-                                           class_weight=class_weight)
+        svc_c = trial.suggest_loguniform("svc_c", 1e-10, 1e10)
+        svc_classifier = sklearn.svm.SVC(C=svc_c,
+                                         gamma="auto",
+                                         class_weight=class_weight)
 
-        score = sklearn.model_selection.cross_val_score(rf_classifier,
+        score = sklearn.model_selection.cross_val_score(svc_classifier,
                                                         x,
                                                         y.ravel(),
                                                         cv=10)
