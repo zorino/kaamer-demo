@@ -27,6 +27,8 @@ import dtale
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+from skbio.stats.composition import multiplicative_replacement, ancom
+
 
 # Utils Functions
 def stat_distribution(dd):
@@ -50,6 +52,23 @@ def pvals_stats(sorted_pvals, dd):
 
     for k, v in sorted_pvals.items():
         print(dd[k].mean())
+
+
+def ancom_test(dd, labels):
+    dd_adj = multiplicative_replacement(dd)
+
+    dd_adj = pd.DataFrame(
+        data=dd_adj,  # values
+        index=dd.index,  # 1st column as index
+        columns=dd.columns)
+    results = ancom(dd_adj,
+                    labels,
+                    multiple_comparisons_correction='holm-bonferroni')
+    results[0]["ft"] = dd.columns
+    dtale.show(results[0].set_index(["ft"]),
+               ignore_duplicate=True,
+               notebook=True)
+    return results
 
 
 def features_stat(dd, labels):
