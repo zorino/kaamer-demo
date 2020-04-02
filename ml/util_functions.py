@@ -28,6 +28,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 from skbio.stats.composition import multiplicative_replacement, ancom
+from skbio.diversity.alpha import chao1, shannon
+from skbio.stats.ordination import pcoa
+from skbio.diversity import beta_diversity
 
 
 # Utils Functions
@@ -142,6 +145,56 @@ def features_stat(dd, labels):
     fig.show()
 
     #return sorted_pvals
+
+
+def alpha_diversity_chao1(dd, labels):
+    _alpha_diversity = {}
+    for index, row in dd.iterrows():
+        # print(index)
+        # print(chao1(row))
+        _alpha_diversity[index] = chao1(row)
+
+    _dd_alpha_diversity = pd.DataFrame.from_dict(_alpha_diversity,
+                                                 orient='index',
+                                                 columns=['chao1'])
+    plot_boxplot(_dd_alpha_diversity, 'chao1', labels)
+
+
+def alpha_diversity_shannon(dd, labels):
+    _alpha_diversity = {}
+    for index, row in dd.iterrows():
+        _alpha_diversity[index] = shannon(row)
+
+    _dd_alpha_diversity = pd.DataFrame.from_dict(_alpha_diversity,
+                                                 orient='index',
+                                                 columns=['shannon'])
+    plot_boxplot(_dd_alpha_diversity, 'shannon', labels)
+
+
+def beta_diversity_braycurtis(dd, labels):
+
+    nb_colors = labels.nunique()
+    _dm = beta_diversity('braycurtis', dd.to_numpy(), dd.index)
+    _dm_pcoa = pcoa(_dm)
+    _dm_pcoa.samples["labels"] = labels
+
+    plt.figure(figsize=(8, 6))
+
+    fig = px.scatter(_dm_pcoa.samples,
+                     x='PC1',
+                     y='PC2',
+                     color=labels.sort_values(ascending=True),
+                     title=("PCoA %s" % labels.name))
+
+    fig.show()
+
+    fig = px.scatter_3d(_dm_pcoa.samples,
+                        x='PC1',
+                        y='PC2',
+                        z='PC3',
+                        color=labels.sort_values(ascending=True),
+                        title=("PCoA %s" % labels.name))
+    fig.show()
 
 
 def plot_boxplot(dd, ft, labels):
