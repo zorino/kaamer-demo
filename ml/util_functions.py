@@ -14,7 +14,7 @@ import lightgbm as lgb
 import catboost as cb
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import StratifiedKFold, cross_val_score, cross_val_predict
+from sklearn.model_selection import StratifiedKFold, cross_val_score, cross_val_predict, cross_validate
 
 from .optuna_objective import *
 
@@ -85,8 +85,8 @@ def features_stat(dd, labels):
     stats_neg = stat_distribution(dd_neg)
 
     plt.figure(figsize=(12, 6))
-    fig = sns.distplot(stats_pos["ft_count"], kde=True, color="blue")
-    fig = sns.distplot(stats_neg["ft_count"], kde=True, color="red")
+    fig = sns.distplot(stats_pos["ft_count"], kde=True, color="red")
+    fig = sns.distplot(stats_neg["ft_count"], kde=True, color="blue")
     fig.set(xlabel='Number of features', ylabel='Count')
     plt.show()
 
@@ -129,16 +129,26 @@ def features_stat(dd, labels):
     # plot significant pvalues boxplot
     max_plot_number = 25
     i = 0
-    pval_box_plot = {'feature': [], 'rel_ab': [], 'label': []}
+    pval_box_plot = {
+        'feature': [],
+        'Relative abundances': [],
+        'Overweight': []
+    }
     for ft in features_good:
         if pvals_stats[ft]["pval_good"] == True and i < max_plot_number:
             i += 1
             pval_box_plot['feature'].extend([ft] * len(dd[ft].values))
-            pval_box_plot['rel_ab'].extend(dd[ft].values)
-            pval_box_plot['label'].extend(labels['surpoids'].values)
+            pval_box_plot['Relative abundances'].extend(dd[ft].values)
+            pval_box_plot['Overweight'].extend(labels['surpoids'].values)
 
     pvals_good_df_box = pd.DataFrame(pval_box_plot)
-    fig = px.box(pvals_good_df_box, x='feature', y='rel_ab', color='label')
+    fig = px.box(
+        pvals_good_df_box,
+        x='feature',
+        y='Relative abundances',
+        color='Overweight',
+        color_discrete_sequence=['#EF553B', '#636EFA'],
+    )
     fig.update_traces(
         quartilemethod="exclusive")  # or "inclusive", or "linear" by default
     #fig.update_layout(yaxis_type="log")
@@ -205,6 +215,7 @@ def plot_boxplot(dd, ft, labels):
                  points="all",
                  title=("Boxplot %s - %s" % (labels.name, ft)))
     fig.update_layout(dict(boxgroupgap=0.5))
+    fig.update_layout(legend_title=('%s') % labels.name)
     fig.show()
 
 
@@ -284,14 +295,15 @@ def model_scores(data, model, cv):
     ]
     scores = {}
     kfold = StratifiedKFold(n_splits=cv, random_state=None, shuffle=True)
-    for s in scoring:
-        scores[s] = cross_val_score(model,
-                                    data['x'],
-                                    data['y'].ravel(),
-                                    cv=kfold,
-                                    scoring=s,
-                                    n_jobs=-1)
-    return scores
+    scores_cross_val = cross_validate(
+        model,
+        data['x'],
+        data['y'].ravel(),
+        cv=kfold,
+        scoring=("accuracy", "balanced_accuracy", "average_precision", "f1",
+                 "precision", "recall", "roc_auc"),
+        n_jobs=-1)
+    return scores_cross_val
 
 
 def optuna_xgboost_cv(dd, labels, imbalance_ratio, n_trials):
