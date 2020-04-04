@@ -151,8 +151,8 @@ class Objective_lightgbm_accuracy(object):
                                                             y,
                                                             test_size=0.25)
 
-        dtrain = lgb.Dataset(train_x, label=train_y)
-        dtest = lgb.Dataset(test_x, label=test_y)
+        dtrain = lgb.Dataset(train_x, label=train_y.ravel())
+        dtest = lgb.Dataset(test_x, label=test_y.ravel())
 
         param = {
             'objective': 'binary',
@@ -169,7 +169,7 @@ class Objective_lightgbm_accuracy(object):
             'bagging_freq': trial.suggest_int('bagging_freq', 1, 7),
             'min_child_samples': trial.suggest_int('min_child_samples', 5,
                                                    100),
-            'scale_pose_weight': imbalance_ratio
+            'scale_pos_weight': imbalance_ratio
         }
 
         # Add a callback for pruning.
