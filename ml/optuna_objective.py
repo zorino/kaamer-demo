@@ -280,7 +280,7 @@ class Objective_SVC_accuracy(object):
         if 'imbalance_ratio' in self.data and self.data['imbalance_ratio'] != 1:
             class_weight = "balanced"
 
-        svc_c = trial.suggest_loguniform("svc_c", 1e-10, 1e10)
+        svc_c = trial.suggest_loguniform("C", 1e-10, 1e10)
         svc_classifier = sklearn.svm.SVC(C=svc_c,
                                          gamma="auto",
                                          class_weight=class_weight)
