@@ -207,15 +207,47 @@ def beta_diversity_braycurtis(dd, labels):
     fig.show()
 
 
-def plot_boxplot(dd, ft, labels):
-    plt.figure(figsize=(8, 6))
+def plot_boxplot(dd,
+                 ft,
+                 labels,
+                 width=500,
+                 height=400,
+                 show_title=False,
+                 show_legend=False):
+
+    if not show_title:
+        title = ""
+    else:
+        title = "Boxplot %s - %s" % (labels.name, ft)
+
     fig = px.box(dd,
                  y=ft,
                  color=labels.sort_values(ascending=True),
                  points="all",
-                 title=("Boxplot %s - %s" % (labels.name, ft)))
+                 title=title,
+                 width=width,
+                 height=height)
+
     fig.update_layout(dict(boxgroupgap=0.5))
+    fig.update_layout(plot_bgcolor='rgba(0,0,0,0)')
     fig.update_layout(legend_title=('%s') % labels.name)
+    fig.update_layout(showlegend=show_legend)
+    fig.show()
+
+
+def plot_multiboxplot(dd, ft, labels, rows_nb, cols_nb):
+
+    box = px.box(dd,
+                 y=ft,
+                 color=labels.sort_values(ascending=True),
+                 points="all",
+                 title=("Boxplot %s - %s" % (labels.name, ft)),
+                 width=600,
+                 height=400)
+
+    fig = make_subplots(rows=rows_nb, cols=cols_nb)
+    fig.add_box(box, row=1, col=1)
+    fig.add_box(box, row=1, col=2)
     fig.show()
 
 
