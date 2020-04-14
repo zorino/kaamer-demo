@@ -23,6 +23,7 @@ import seaborn as sns
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+from plotly.graph_objs.layout import YAxis
 import dtale
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -213,7 +214,9 @@ def plot_boxplot(dd,
                  width=500,
                  height=400,
                  show_title=False,
-                 show_legend=False):
+                 show_legend=False,
+                 y_max=0,
+                 y_min=0):
 
     if not show_title:
         title = ""
@@ -232,6 +235,9 @@ def plot_boxplot(dd,
     fig.update_layout(plot_bgcolor='rgba(0,0,0,0)')
     fig.update_layout(legend_title=('%s') % labels.name)
     fig.update_layout(showlegend=show_legend)
+    if y_max != 0:
+        fig.update_layout(
+            yaxis=YAxis(autorange=False, range=[y_min, y_max], title=ft))
     fig.show()
 
 
