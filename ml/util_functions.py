@@ -213,31 +213,53 @@ def plot_boxplot(dd,
                  labels,
                  width=500,
                  height=400,
-                 show_title=False,
+                 title="",
+                 title_yaxis="",
                  show_legend=False,
                  y_max=0,
                  y_min=0):
 
-    if not show_title:
-        title = ""
-    else:
-        title = "Boxplot %s - %s" % (labels.name, ft)
-
+    _title = title
     fig = px.box(dd,
                  y=ft,
                  color=labels.sort_values(ascending=True),
                  points="all",
-                 title=title,
+                 title=_title,
                  width=width,
                  height=height)
 
     fig.update_layout(dict(boxgroupgap=0.5))
     fig.update_layout(plot_bgcolor='rgba(0,0,0,0)')
+    fig.update_xaxes(showline=True, linewidth=2, linecolor='black')
     fig.update_layout(legend_title=('%s') % labels.name)
     fig.update_layout(showlegend=show_legend)
+    fig.update_layout(title={
+        'text': _title,
+        'y': 0.85,
+        'x': 0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'
+    })
     if y_max != 0:
-        fig.update_layout(
-            yaxis=YAxis(autorange=False, range=[y_min, y_max], title=ft))
+        fig.update_layout(yaxis=YAxis(autorange=False,
+                                      range=[y_min, y_max],
+                                      title=title_yaxis,
+                                      showline=True,
+                                      linewidth=2,
+                                      linecolor='black',
+                                      showgrid=True,
+                                      gridwidth=1,
+                                      gridcolor='lightgrey'))
+    else:
+        fig.update_layout(yaxis=YAxis(autorange=True,
+                                      title=title_yaxis,
+                                      showline=True,
+                                      linewidth=2,
+                                      linecolor='black',
+                                      showgrid=True,
+                                      gridwidth=1,
+                                      gridcolor='lightgrey'))
+
     fig.show()
 
 
