@@ -366,7 +366,7 @@ def model_scores(data, model, cv):
     return scores_cross_val
 
 
-def optuna_xgboost_cv(dd, labels, imbalance_ratio, n_trials):
+def optuna_xgboost_cv(dd, labels, imbalance_ratio, n_trials, save_file=""):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -392,10 +392,22 @@ def optuna_xgboost_cv(dd, labels, imbalance_ratio, n_trials):
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
+
     return model
 
 
-def optuna_xgboost_accuracy(dd, labels, imbalance_ratio, n_trials):
+def optuna_xgboost_accuracy(dd,
+                            labels,
+                            imbalance_ratio,
+                            n_trials,
+                            save_file=""):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -421,10 +433,22 @@ def optuna_xgboost_accuracy(dd, labels, imbalance_ratio, n_trials):
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
+
     return model
 
 
-def optuna_lightgbm_accuracy(dd, labels, imbalance_ratio, n_trials):
+def optuna_lightgbm_accuracy(dd,
+                             labels,
+                             imbalance_ratio,
+                             n_trials,
+                             save_file=""):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -450,10 +474,22 @@ def optuna_lightgbm_accuracy(dd, labels, imbalance_ratio, n_trials):
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
+
     return model
 
 
-def optuna_catboost_accuracy(dd, labels, imbalance_ratio, n_trials):
+def optuna_catboost_accuracy(dd,
+                             labels,
+                             imbalance_ratio,
+                             n_trials,
+                             save_file=""):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -480,10 +516,18 @@ def optuna_catboost_accuracy(dd, labels, imbalance_ratio, n_trials):
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
+
     return model
 
 
-def optuna_RF_accuracy(dd, labels, imbalance_ratio, n_trials):
+def optuna_RF_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -512,11 +556,18 @@ def optuna_RF_accuracy(dd, labels, imbalance_ratio, n_trials):
     y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
 
     return model
 
 
-def optuna_SVC_accuracy(dd, labels, imbalance_ratio, n_trials):
+def optuna_SVC_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -543,6 +594,14 @@ def optuna_SVC_accuracy(dd, labels, imbalance_ratio, n_trials):
     y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
+
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
 
     return model
 
