@@ -1,7 +1,7 @@
 name: kaamerpy
 channels:
-  - anaconda
   - conda-forge
+  - anaconda
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=main
@@ -12,10 +12,11 @@ dependencies:
   - biopython=1.76=py36h7b6447c_0
   - blas=1.0=mkl
   - bleach=3.1.0=py36_0
-  - ca-certificates=2020.1.1=0
+  - ca-certificates=2020.4.5.1=hecc5488_0
   - cachecontrol=0.12.5=py36_0
+  - cairo=1.14.12=h8948797_3
   - catboost=0.22=py36_0
-  - certifi=2019.11.28=py36_1
+  - certifi=2020.4.5.1=py36h9f0ad1d_0
   - cffi=1.14.0=py36hd463f26_0
   - chardet=3.0.4=py36h9f0ad1d_1006
   - click=7.1.1=pyh8c360ce_0
@@ -35,17 +36,22 @@ dependencies:
   - decorator=4.4.2=py_0
   - defusedxml=0.6.0=py_0
   - dtale=1.8.0=pyh9f0ad1d_0
+  - eli5=0.10.1=py36_1
   - entrypoints=0.3=py36_0
   - expat=2.2.6=he6710b0_0
   - flask=1.1.1=py_1
   - flask-compress=1.4.0=py_0
   - fontconfig=2.13.0=h9420a91_0
   - freetype=2.10.1=he06d7ca_0
+  - fribidi=1.0.9=h516909a_0
   - future=0.18.2=py36h9f0ad1d_1
   - glib=2.63.1=h5a9c865_0
   - gmp=6.1.2=h6c8ec71_1
+  - graphite2=1.3.13=he1b5a44_1001
+  - graphviz=2.40.1=h21bd128_2
   - gst-plugins-base=1.14.0=hbbd80ab_1
   - gstreamer=1.14.0=hb453b48_1
+  - harfbuzz=1.8.8=hffaf4a1_0
   - icu=58.2=hf484d3e_1000
   - idna=2.9=py_1
   - importlib_metadata=1.5.0=py36_0
@@ -73,6 +79,7 @@ dependencies:
   - libpng=1.6.37=hed695b0_1
   - libsodium=1.0.16=h1bed415_0
   - libstdcxx-ng=9.1.0=hdf63c60_0
+  - libtiff=4.0.9=he6b73bb_1
   - libuuid=1.0.3=h1bed415_2
   - libxcb=1.13=h1bed415_1
   - libxgboost=1.0.2=he1b5a44_0
@@ -99,11 +106,12 @@ dependencies:
   - notebook=6.0.3=py36_0
   - numpy=1.18.1=py36h4f9e942_0
   - numpy-base=1.18.1=py36hde5b4d6_1
-  - openssl=1.1.1=h7b6447c_0
+  - openssl=1.1.1f=h516909a_0
   - optuna=1.2.0=py_0
   - pandas=1.0.3=py36h0573a6f_0
   - pandoc=2.2.3.2=0
   - pandocfilters=1.4.2=py36_1
+  - pango=1.42.4=h049681c_0
   - parso=0.6.2=py_0
   - patsy=0.5.1=py36_0
   - pbr=5.4.2=py_0
@@ -111,6 +119,7 @@ dependencies:
   - pexpect=4.8.0=py36_0
   - pickleshare=0.7.5=py36_0
   - pip=20.0.2=py36_1
+  - pixman=0.38.0=h516909a_1003
   - plotly=4.5.4=pyh8c360ce_0
   - prettytable=0.7.2=py_3
   - prometheus_client=0.7.1=py_0
@@ -128,6 +137,7 @@ dependencies:
   - python=3.6.10=h191fe78_1
   - python-dateutil=2.8.1=py_0
   - python-editor=1.0.4=py_0
+  - python-graphviz=0.13.2=py_0
   - python_abi=3.6=1_cp36m
   - pytz=2019.3=py_0
   - pyyaml=5.3.1=py36h8c4c3a4_0
@@ -144,12 +154,14 @@ dependencies:
   - seaborn=0.10.0=py_1
   - send2trash=1.5.0=py36_0
   - setuptools=46.1.1=py36_0
+  - singledispatch=3.4.0.3=py36_1000
   - sip=4.19.8=py36hf484d3e_0
   - six=1.14.0=py36_0
   - sqlalchemy=1.3.15=py36h8c4c3a4_1
   - sqlite=3.31.1=h7b6447c_0
   - statsmodels=0.11.0=py36h7b6447c_0
   - stevedore=1.30.1=py_0
+  - tabulate=0.8.7=pyh9f0ad1d_0
   - terminado=0.8.3=py36_0
   - testpath=0.4.4=py_0
   - tk=8.6.8=hbc83047_0
@@ -168,4 +180,3 @@ dependencies:
   - zeromq=4.3.1=he6710b0_3
   - zipp=2.2.0=py_0
   - zlib=1.2.11=h7b6447c_3
-
