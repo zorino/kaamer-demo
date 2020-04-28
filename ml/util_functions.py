@@ -150,10 +150,10 @@ def features_stat(dd, labels):
     )
     fig.update_traces(
         quartilemethod="exclusive")  # or "inclusive", or "linear" by default
-    #fig.update_layout(yaxis_type="log")
+
     fig.show()
 
-    #return sorted_pvals
+    return pvals_stats_df
 
 
 def alpha_diversity_chao1(dd, labels):
