@@ -69,9 +69,7 @@ def ancom_test(dd, labels):
                     labels,
                     multiple_comparisons_correction='holm-bonferroni')
     results[0]["ft"] = dd.columns
-    dtale.show(results[0].set_index(["ft"]),
-               ignore_duplicate=True,
-               notebook=True)
+    dtale.show(results[0].set_index(["ft"]), notebook=True)
     return results
 
 
@@ -613,3 +611,13 @@ def optuna_viz(study):
     #optuna.visualization.plot_parallel_coordinate(study, params=['max_depth', 'booster'])
     #optuna.visualization.plot_slice(study, params=['max_depth', 'booster'])
     #plt.show()
+
+
+def print_ml_results(result):
+
+    model = result['model']
+    cv_results = result['cv_results']
+    confusion_matrix = result['confusion_matrix']
+
+    cv_results_pd = pd.Series(cv_results)
+    dtale.show(cv_results_pd, notebook=True)
