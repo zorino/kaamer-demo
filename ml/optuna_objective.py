@@ -29,21 +29,16 @@ class Objective_xgboost_accuracy(object):
         dtest = xgb.DMatrix(test_x, label=test_y)
 
         param = {
-            'silent':
-            1,
-            'objective':
-            'binary:logistic',
-            'eval_metric':
-            'auc',
-            'booster':
-            trial.suggest_categorical('booster',
-                                      ['gbtree', 'gblinear', 'dart']),
-            'lambda':
-            trial.suggest_loguniform('lambda', 1e-8, 1.0),
-            'alpha':
-            trial.suggest_loguniform('alpha', 1e-8, 1.0),
-            'scale_pose_weight':
-            imbalance_ratio
+            'silent': 1,
+            'objective': 'binary:logistic',
+            'eval_metric': 'auc',
+            'booster': trial.suggest_categorical('booster',
+                                                 ['gbtree', 'dart']),
+            # trial.suggest_categorical('booster',
+            #                           ['gbtree', 'gblinear', 'dart']),
+            'lambda': trial.suggest_loguniform('lambda', 1e-8, 1.0),
+            'alpha': trial.suggest_loguniform('alpha', 1e-8, 1.0),
+            'scale_pose_weight': imbalance_ratio
         }
 
         if param['booster'] == 'gbtree' or param['booster'] == 'dart':
@@ -91,21 +86,16 @@ class Objective_xgboost_cv(object):
             imbalance_ratio = self.data['imbalance_ratio']
 
         param = {
-            'silent':
-            1,
-            'objective':
-            'binary:logistic',
-            'eval_metric':
-            'auc',
-            'booster':
-            trial.suggest_categorical('booster',
-                                      ['gbtree', 'gblinear', 'dart']),
-            'lambda':
-            trial.suggest_loguniform('lambda', 1e-8, 1.0),
-            'alpha':
-            trial.suggest_loguniform('alpha', 1e-8, 1.0),
-            'scale_pose_weight':
-            imbalance_ratio
+            'silent': 1,
+            'objective': 'binary:logistic',
+            'eval_metric': 'auc',
+            'booster': trial.suggest_categorical('booster',
+                                                 ['gbtree', 'dart']),
+            # trial.suggest_categorical('booster',
+            #                           ['gbtree', 'gblinear', 'dart']),
+            'lambda': trial.suggest_loguniform('lambda', 1e-8, 1.0),
+            'alpha': trial.suggest_loguniform('alpha', 1e-8, 1.0),
+            'scale_pose_weight': imbalance_ratio
         }
 
         if param['booster'] == 'gbtree' or param['booster'] == 'dart':
