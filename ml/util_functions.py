@@ -1,13 +1,16 @@
 import pandas as pd
 import numpy as np
 import pickle
-from scipy.spatial.distance import pdist, squareform
 
+from scipy.spatial.distance import pdist, squareform
 from scipy import stats
 import statsmodels.stats.multitest as multitest
 
 import optuna
 from sklearn.manifold import TSNE
+import eli5
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.pipeline import make_pipeline
 
 import xgboost as xgb
 import lightgbm as lgb
@@ -32,6 +35,8 @@ from skbio.stats.composition import multiplicative_replacement, ancom
 from skbio.diversity.alpha import chao1, shannon
 from skbio.stats.ordination import pcoa
 from skbio.diversity import beta_diversity
+
+from IPython.display import display, HTML
 
 
 # Utils Functions
@@ -83,11 +88,11 @@ def features_stat(dd, labels):
     stats_pos = stat_distribution(dd_pos)
     stats_neg = stat_distribution(dd_neg)
 
-    plt.figure(figsize=(12, 6))
-    fig = sns.distplot(stats_pos["ft_count"], kde=True, color="red")
-    fig = sns.distplot(stats_neg["ft_count"], kde=True, color="blue")
-    fig.set(xlabel='Number of features', ylabel='Count')
-    plt.show()
+    # plt.figure(figsize=(12, 6))
+    # fig = sns.distplot(stats_pos["ft_count"], kde=True, color="red")
+    # fig = sns.distplot(stats_neg["ft_count"], kde=True, color="blue")
+    # fig.set(xlabel='Number of features', ylabel='Count')
+    # plt.show()
 
     pvals = []
     pvals_stats = {}
@@ -364,43 +369,6 @@ def model_scores(data, model, cv):
     return scores_cross_val
 
 
-def optuna_xgboost_cv(dd, labels, imbalance_ratio, n_trials, save_file=""):
-    print(" # Optuna parameters search")
-    data = {
-        'x': dd.values,
-        'y': labels.values,
-    }
-    optuna.logging.set_verbosity(optuna.logging.CRITICAL)
-    pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)
-    objective = Objective_xgboost_cv(data)
-    study = optuna.create_study(pruner=pruner, direction='maximize')
-    study.optimize(objective, n_trials=n_trials, n_jobs=-1)
-    print(" # Optuna best trial score")
-    print_obj(study.best_trial.value)
-    print(" # Optuna best params")
-    print_obj(study.best_params)
-    model = xgb.XGBClassifier(**study.best_params,
-                              scale_pos_weight=imbalance_ratio)
-    results = model_scores(data, model, 10)
-    print_obj(results)
-    for r, a in results.items():
-        print("%s : %f" % (r, a.mean()))
-
-    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
-    print(" # Confusion matrix")
-    print_obj(confusion_matrix(data['y'].ravel(), y_pred))
-
-    if save_file != "":
-        save_obj = {
-            "model": model,
-            "cv_results": results,
-            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
-        }
-        pickle.dump(save_obj, open(save_file, 'wb'))
-
-    return model
-
-
 def optuna_xgboost_accuracy(dd,
                             labels,
                             imbalance_ratio,
@@ -422,7 +390,10 @@ def optuna_xgboost_accuracy(dd,
     print_obj(study.best_params)
     model = xgb.XGBClassifier(**study.best_params,
                               scale_pos_weight=imbalance_ratio)
+
+    # compute performance of the model
     results = model_scores(data, model, 10)
+
     print_obj(results)
     for r, a in results.items():
         print("%s : %f" % (r, a.mean()))
@@ -431,11 +402,27 @@ def optuna_xgboost_accuracy(dd,
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
+    print(" # ELI5 feature importance")
+    model_fit = model.fit(data['x'], data['y'].ravel())
+    display(eli5.show_weights(model, feature_names=dd.columns.to_numpy()))
+    eli5_weights = eli5.explain_weights(model,
+                                        feature_names=dd.columns.to_numpy())
+    print(eli5_weights)
+    # eli5_prediction = eli5.explain_prediction(
+    #     model, data['x'][0], feature_names=dd.columns.to_numpy())
+    # print(eli5_prediction)
+    display(
+        eli5.show_prediction(model,
+                             data['x'][0],
+                             feature_names=dd.columns.to_numpy(),
+                             show_feature_values=True))
+
     if save_file != "":
         save_obj = {
             "model": model,
             "cv_results": results,
-            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred),
+            "eli5_weights": eli5_weights,
         }
         pickle.dump(save_obj, open(save_file, 'wb'))
 
@@ -472,11 +459,27 @@ def optuna_lightgbm_accuracy(dd,
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
+    print(" # ELI5 feature importance")
+    model_fit = model.fit(data['x'], data['y'].ravel())
+    display(eli5.show_weights(model, feature_names=dd.columns.to_numpy()))
+    eli5_weights = eli5.explain_weights(model,
+                                        feature_names=dd.columns.to_numpy())
+    print(eli5_weights)
+    # eli5_prediction = eli5.explain_prediction(
+    #     model, data['x'][0], feature_names=dd.columns.to_numpy())
+    # print(eli5_prediction)
+    display(
+        eli5.show_prediction(model,
+                             data['x'][0],
+                             feature_names=dd.columns.to_numpy(),
+                             show_feature_values=True))
+
     if save_file != "":
         save_obj = {
             "model": model,
             "cv_results": results,
-            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred),
+            "eli5_weights": eli5_weights,
         }
         pickle.dump(save_obj, open(save_file, 'wb'))
 
@@ -514,11 +517,27 @@ def optuna_catboost_accuracy(dd,
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
+    print(" # ELI5 feature importance")
+    model_fit = model.fit(data['x'], data['y'].ravel())
+    display(eli5.show_weights(model, feature_names=dd.columns.to_numpy()))
+    eli5_weights = eli5.explain_weights(model,
+                                        feature_names=dd.columns.to_numpy())
+    print(eli5_weights)
+    # eli5_prediction = eli5.explain_prediction(
+    #     model, data['x'][0], feature_names=dd.columns.to_numpy())
+    # print(eli5_prediction)
+    display(
+        eli5.show_prediction(model,
+                             data['x'][0],
+                             feature_names=dd.columns.to_numpy(),
+                             show_feature_values=True))
+
     if save_file != "":
         save_obj = {
             "model": model,
             "cv_results": results,
-            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred),
+            "eli5_weights": eli5_weights,
         }
         pickle.dump(save_obj, open(save_file, 'wb'))
 
@@ -554,11 +573,28 @@ def optuna_RF_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
+
+    print(" # ELI5 feature importance")
+    model_fit = model.fit(data['x'], data['y'].ravel())
+    display(eli5.show_weights(model, feature_names=dd.columns.to_numpy()))
+    eli5_weights = eli5.explain_weights(model,
+                                        feature_names=dd.columns.to_numpy())
+    print(eli5_weights)
+    # eli5_prediction = eli5.explain_prediction(
+    #     model, data['x'][0], feature_names=dd.columns.to_numpy())
+    # print(eli5_prediction)
+    display(
+        eli5.show_prediction(model,
+                             data['x'][0],
+                             feature_names=dd.columns.to_numpy(),
+                             show_feature_values=True))
+
     if save_file != "":
         save_obj = {
             "model": model,
             "cv_results": results,
-            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred),
+            "eli5_weights": eli5_weights,
         }
         pickle.dump(save_obj, open(save_file, 'wb'))
 
@@ -593,11 +629,81 @@ def optuna_SVC_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
+    print(" # ELI5 feature importance")
+    model_fit = model.fit(data['x'], data['y'].ravel())
+    display(eli5.show_weights(model, feature_names=dd.columns.to_numpy()))
+    eli5_weights = eli5.explain_weights(model,
+                                        feature_names=dd.columns.to_numpy())
+    print(eli5_weights)
+    # eli5_prediction = eli5.explain_prediction(
+    #     model, data['x'][0], feature_names=dd.columns.to_numpy())
+    # print(eli5_prediction)
+    display(
+        eli5.show_prediction(model,
+                             data['x'][0],
+                             feature_names=dd.columns.to_numpy(),
+                             show_feature_values=True))
+
     if save_file != "":
         save_obj = {
             "model": model,
             "cv_results": results,
-            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred)
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred),
+            "eli5_weights": eli5_weights,
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
+
+    return model
+
+
+def optuna_xgboost_cv(dd, labels, imbalance_ratio, n_trials, save_file=""):
+    print(" # Optuna parameters search")
+    data = {
+        'x': dd.values,
+        'y': labels.values,
+    }
+    optuna.logging.set_verbosity(optuna.logging.CRITICAL)
+    pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)
+    objective = Objective_xgboost_cv(data)
+    study = optuna.create_study(pruner=pruner, direction='maximize')
+    study.optimize(objective, n_trials=n_trials, n_jobs=-1)
+
+    print(" # Optuna best trial score")
+    print_obj(study.best_trial.value)
+    print(" # Optuna best params")
+    print_obj(study.best_params)
+    model = xgb.XGBClassifier(**study.best_params,
+                              scale_pos_weight=imbalance_ratio)
+    results = model_scores(data, model, 10)
+    print_obj(results)
+    for r, a in results.items():
+        print("%s : %f" % (r, a.mean()))
+
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    print(" # Confusion matrix")
+    print_obj(confusion_matrix(data['y'].ravel(), y_pred))
+
+    print(" # ELI5 feature importance")
+    model_fit = model.fit(data['x'], data['y'].ravel())
+    display(eli5.show_weights(model, feature_names=dd.columns.to_numpy()))
+    eli5_weights = eli5.explain_weights(model,
+                                        feature_names=dd.columns.to_numpy())
+    print(eli5_weights)
+    # eli5_prediction = eli5.explain_prediction(
+    #     model, data['x'][0], feature_names=dd.columns.to_numpy())
+    # print(eli5_prediction)
+    display(
+        eli5.show_prediction(model,
+                             data['x'][0],
+                             feature_names=dd.columns.to_numpy(),
+                             show_feature_values=True))
+
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred),
+            "eli5_weights": eli5_weights,
         }
         pickle.dump(save_obj, open(save_file, 'wb'))
 
