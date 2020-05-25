@@ -4,6 +4,7 @@ import sklearn.metrics
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.svm import SVC
+from sklearn import tree
 import xgboost as xgb
 import lightgbm as lgb
 import catboost as cb
@@ -29,16 +30,23 @@ class Objective_xgboost_accuracy(object):
         dtest = xgb.DMatrix(test_x, label=test_y)
 
         param = {
-            'silent': 1,
-            'objective': 'binary:logistic',
-            'eval_metric': 'auc',
-            'booster': trial.suggest_categorical('booster',
-                                                 ['gbtree', 'dart']),
-            # trial.suggest_categorical('booster',
-            #                           ['gbtree', 'gblinear', 'dart']),
-            'lambda': trial.suggest_loguniform('lambda', 1e-8, 1.0),
-            'alpha': trial.suggest_loguniform('alpha', 1e-8, 1.0),
-            'scale_pose_weight': imbalance_ratio
+            'silent':
+            1,
+            'objective':
+            trial.suggest_categorical('objective', [
+                'binary:logistic', 'reg:squarederror', 'binary:hinge',
+                'count:poisson'
+            ]),
+            'eval_metric':
+            'auc',
+            'booster':
+            trial.suggest_categorical('booster', ['gbtree', 'dart']),
+            'lambda':
+            trial.suggest_loguniform('lambda', 1e-8, 1.0),
+            'alpha':
+            trial.suggest_loguniform('alpha', 1e-8, 1.0),
+            'scale_pose_weight':
+            imbalance_ratio
         }
 
         if param['booster'] == 'gbtree' or param['booster'] == 'dart':
@@ -232,6 +240,57 @@ class Objective_catboost_accuracy(object):
         return accuracy
 
 
+class Objective_DT_accuracy(object):
+    def __init__(self, data):
+        self.data = data
+
+    def __call__(self, trial):
+
+        x, y = self.data['x'], self.data['y']
+
+        class_weight = None
+        if 'imbalance_ratio' in self.data and self.data['imbalance_ratio'] != 1:
+            class_weight = "balanced"
+
+        max_depth = int(trial.suggest_loguniform('max_depth', 2, 32))
+        dt_classifier = tree.DecisionTreeClassifier(max_depth=max_depth,
+                                                    class_weight=class_weight)
+
+        score = sklearn.model_selection.cross_val_score(dt_classifier,
+                                                        x,
+                                                        y.ravel(),
+                                                        cv=10)
+        accuracy = score.mean()
+
+        return accuracy
+
+
+class Objective_Adaboost_accuracy(object):
+    def __init__(self, data):
+        self.data = data
+
+    def __call__(self, trial):
+
+        x, y = self.data['x'], self.data['y']
+
+        class_weight = None
+        if 'imbalance_ratio' in self.data and self.data['imbalance_ratio'] != 1:
+            class_weight = "balanced"
+
+        _learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-0)
+
+        adaboost_classifier = AdaBoostClassifier(learning_rate=_learning_rate,
+                                                 n_estimators=100)
+
+        score = sklearn.model_selection.cross_val_score(adaboost_classifier,
+                                                        x,
+                                                        y.ravel(),
+                                                        cv=10)
+        accuracy = score.mean()
+
+        return accuracy
+
+
 class Objective_RF_accuracy(object):
     def __init__(self, data):
         self.data = data
@@ -269,10 +328,12 @@ class Objective_SVC_accuracy(object):
         class_weight = None
         if 'imbalance_ratio' in self.data and self.data['imbalance_ratio'] != 1:
             class_weight = "balanced"
+            class_weight = {10: self.data['imbalance_ratio'] * 10}
 
         svc_c = trial.suggest_loguniform("C", 1e-10, 1e10)
         svc_classifier = sklearn.svm.SVC(C=svc_c,
                                          gamma="auto",
+                                         kernel="linear",
                                          class_weight=class_weight)
 
         score = sklearn.model_selection.cross_val_score(svc_classifier,

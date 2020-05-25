@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import pickle
 
+from pandas.api.types import CategoricalDtype
+
 from scipy.spatial.distance import pdist, squareform
 from scipy import stats
 import statsmodels.stats.multitest as multitest
@@ -15,6 +17,7 @@ from sklearn.pipeline import make_pipeline
 import xgboost as xgb
 import lightgbm as lgb
 import catboost as cb
+from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedKFold, cross_val_score, cross_val_predict, cross_validate
@@ -26,7 +29,7 @@ import seaborn as sns
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
-from plotly.graph_objs.layout import YAxis
+from plotly.graph_objs.layout import YAxis, XAxis
 import dtale
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -80,10 +83,16 @@ def ancom_test(dd, labels):
 
 def features_stat(dd, labels):
 
-    samples_pos_labels = labels[labels.surpoids > 0].index
-    samples_neg_labels = labels[labels.surpoids < 1].index
+    samples_pos_labels = labels[labels.surpoids == 1].index
+    samples_neg_labels = labels[labels.surpoids == 0].index
     dd_pos = dd.loc[samples_pos_labels]
     dd_neg = dd.loc[samples_neg_labels]
+
+    # print("POS = overweight")
+    # print(dd_pos.head(n=20))
+
+    # print("NEG = heathy")
+    # print(dd_neg.head(n=20))
 
     stats_pos = stat_distribution(dd_pos)
     stats_neg = stat_distribution(dd_neg)
@@ -105,15 +114,19 @@ def features_stat(dd, labels):
         features_good.append(ft)
         stat, p = stats.mannwhitneyu(dd_pos[ft], dd_neg[ft])
         mean_pos = dd_pos[ft].mean()
+        median_pos = dd_pos[ft].median()
         std_pos = dd_pos[ft].std()
         mean_neg = dd_neg[ft].mean()
+        median_neg = dd_neg[ft].median()
         std_neg = dd_neg[ft].std()
         pvals_stats[ft] = {
             "ft": ft,
             "pval": p,
             "mean_overweight": mean_pos,
+            "median_overweight": median_pos,
             "std_overweight": std_pos,
             "mean_healthy": mean_neg,
+            "median_healthy": median_neg,
             "std_healthy": std_neg,
             "fold_change": (mean_pos / mean_neg)
         }
@@ -146,17 +159,29 @@ def features_stat(dd, labels):
             pval_box_plot['Overweight'].extend(labels['surpoids'].values)
 
     pvals_good_df_box = pd.DataFrame(pval_box_plot)
-    fig = px.box(
-        pvals_good_df_box,
-        x='feature',
-        y='Relative abundances',
-        color='Overweight',
-        color_discrete_sequence=['#EF553B', '#636EFA'],
-    )
-    fig.update_traces(
-        quartilemethod="exclusive")  # or "inclusive", or "linear" by default
 
-    fig.show()
+    # print(pvals_good_df_box[pvals_good_df_box['feature'] == 'Firmicutes'][
+    #     pvals_good_df_box['Overweight'] == 1].head(n=50))
+    # print(pvals_good_df_box[pvals_good_df_box['feature'] == 'Firmicutes'][
+    #     pvals_good_df_box['Overweight'] == 1]
+    #       ['Relative abundances'].values.mean())
+
+    # print(pvals_good_df_box[pvals_good_df_box['feature'] == 'Firmicutes'][
+    #     pvals_good_df_box['Overweight'] == 0]
+    #       ['Relative abundances'].values.mean())
+    if len(pvals_good_df_box) > 0:
+
+        fig = px.box(
+            pvals_good_df_box,
+            x='feature',
+            y='Relative abundances',
+            color='Overweight',
+            color_discrete_sequence=['#EF553B', '#636EFA'],
+        )
+        fig.update_traces(quartilemethod="exclusive"
+                          )  # or "inclusive", or "linear" by default
+
+        fig.show()
 
     return pvals_stats_df
 
@@ -223,9 +248,17 @@ def plot_boxplot(dd,
                  y_min=0):
 
     _title = title
-    fig = px.box(dd,
+
+    _dd = dd.copy()
+
+    _dd.insert(1, 'group', labels.values)
+    _dd['group'] = _dd['group'].astype('category')
+    _dd['group'].cat.reorder_categories(
+        labels.sort_values(ascending=True).unique())
+
+    fig = px.box(_dd,
                  y=ft,
-                 color=labels.sort_values(ascending=True),
+                 color='group',
                  points="all",
                  title=_title,
                  width=width,
@@ -601,6 +634,121 @@ def optuna_RF_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     return model
 
 
+def optuna_DT_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
+    print(" # Optuna parameters search")
+    data = {
+        'x': dd.values,
+        'y': labels.values,
+    }
+    optuna.logging.set_verbosity(optuna.logging.CRITICAL)
+    pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)
+    objective = Objective_DT_accuracy(data)
+    study = optuna.create_study(pruner=pruner, direction='maximize')
+    study.optimize(objective, n_trials=n_trials, n_jobs=-1)
+    print(" # Optuna best trial score")
+    print_obj(study.best_trial.value)
+    print(" # Optuna best params")
+    print_obj(study.best_params)
+    class_weight = None
+    if 'imbalance_ratio' != 1:
+        class_weight = "balanced"
+    model = tree.DecisionTreeClassifier(**study.best_params,
+                                        class_weight=class_weight)
+    results = model_scores(data, model, 10)
+    print_obj(results)
+    for r, a in results.items():
+        print("%s : %f" % (r, a.mean()))
+
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    print(" # Confusion matrix")
+    print_obj(confusion_matrix(data['y'].ravel(), y_pred))
+
+    print(" # ELI5 feature importance")
+    model_fit = model.fit(data['x'], data['y'].ravel())
+    display(eli5.show_weights(model, feature_names=dd.columns.to_numpy()))
+    eli5_weights = eli5.explain_weights(model,
+                                        feature_names=dd.columns.to_numpy())
+    print(eli5_weights)
+    # eli5_prediction = eli5.explain_prediction(
+    #     model, data['x'][0], feature_names=dd.columns.to_numpy())
+    # print(eli5_prediction)
+    display(
+        eli5.show_prediction(model,
+                             data['x'][0],
+                             feature_names=dd.columns.to_numpy(),
+                             show_feature_values=True))
+
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred),
+            "eli5_weights": eli5_weights,
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
+
+    return model
+
+
+def optuna_Adaboost_accuracy(dd,
+                             labels,
+                             imbalance_ratio,
+                             n_trials,
+                             save_file=""):
+    print(" # Optuna parameters search")
+    data = {
+        'x': dd.values,
+        'y': labels.values,
+    }
+    optuna.logging.set_verbosity(optuna.logging.CRITICAL)
+    pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)
+    objective = Objective_Adaboost_accuracy(data)
+    study = optuna.create_study(pruner=pruner, direction='maximize')
+    study.optimize(objective, n_trials=n_trials, n_jobs=-1)
+    print(" # Optuna best trial score")
+    print_obj(study.best_trial.value)
+    print(" # Optuna best params")
+    print_obj(study.best_params)
+    class_weight = None
+    if 'imbalance_ratio' != 1:
+        class_weight = "balanced"
+    model = AdaBoostClassifier(**study.best_params, n_estimators=100)
+    results = model_scores(data, model, 10)
+    print_obj(results)
+    for r, a in results.items():
+        print("%s : %f" % (r, a.mean()))
+
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    print(" # Confusion matrix")
+    print_obj(confusion_matrix(data['y'].ravel(), y_pred))
+
+    print(" # ELI5 feature importance")
+    model_fit = model.fit(data['x'], data['y'].ravel())
+    display(eli5.show_weights(model, feature_names=dd.columns.to_numpy()))
+    eli5_weights = eli5.explain_weights(model,
+                                        feature_names=dd.columns.to_numpy())
+    print(eli5_weights)
+    # eli5_prediction = eli5.explain_prediction(
+    #     model, data['x'][0], feature_names=dd.columns.to_numpy())
+    # print(eli5_prediction)
+    display(
+        eli5.show_prediction(model,
+                             data['x'][0],
+                             feature_names=dd.columns.to_numpy(),
+                             show_feature_values=True))
+
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred),
+            "eli5_weights": eli5_weights,
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
+
+    return model
+
+
 def optuna_SVC_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     print(" # Optuna parameters search")
     data = {
@@ -635,9 +783,11 @@ def optuna_SVC_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     eli5_weights = eli5.explain_weights(model,
                                         feature_names=dd.columns.to_numpy())
     print(eli5_weights)
+
     # eli5_prediction = eli5.explain_prediction(
     #     model, data['x'][0], feature_names=dd.columns.to_numpy())
     # print(eli5_prediction)
+
     display(
         eli5.show_prediction(model,
                              data['x'][0],
