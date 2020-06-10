@@ -39,6 +39,7 @@ from skbio.stats.composition import multiplicative_replacement, ancom
 from skbio.diversity.alpha import chao1, shannon
 from skbio.stats.ordination import pcoa
 from skbio.diversity import beta_diversity
+from skbio.stats.distance import anosim
 
 from IPython.display import display, HTML
 
@@ -235,6 +236,9 @@ def beta_diversity_braycurtis(dd, labels):
                         color=labels.sort_values(ascending=True),
                         title=("PCoA %s" % labels.name))
     fig.show()
+    anosim_res = anosim(_dm, labels.values)
+
+    return anosim_res
 
 
 def plot_boxplot(dd,
