@@ -404,7 +404,8 @@ def optuna_xgboost_accuracy(dd,
                             labels,
                             imbalance_ratio,
                             n_trials,
-                            save_file=""):
+                            save_file="",
+                            cv_fold=10):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -423,13 +424,74 @@ def optuna_xgboost_accuracy(dd,
                               scale_pos_weight=imbalance_ratio)
 
     # compute performance of the model
-    results = model_scores(data, model, 10)
+    results = model_scores(data, model, cv_fold)
 
     print_obj(results)
     for r, a in results.items():
         print("%s : %f" % (r, a.mean()))
 
-    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=cv_fold)
+    print(" # Confusion matrix")
+    print_obj(confusion_matrix(data['y'].ravel(), y_pred))
+
+    print(" # ELI5 feature importance")
+    model_fit = model.fit(data['x'], data['y'].ravel())
+    display(eli5.show_weights(model, feature_names=dd.columns.to_numpy()))
+    eli5_weights = eli5.explain_weights(model,
+                                        feature_names=dd.columns.to_numpy())
+    print(eli5_weights)
+    # eli5_prediction = eli5.explain_prediction(
+    #     model, data['x'][0], feature_names=dd.columns.to_numpy())
+    # print(eli5_prediction)
+    display(
+        eli5.show_prediction(model,
+                             data['x'][0],
+                             feature_names=dd.columns.to_numpy(),
+                             show_feature_values=True))
+
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred),
+            "eli5_weights": eli5_weights,
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
+
+    return model
+
+
+def optuna_xgboost_f1(dd,
+                      labels,
+                      imbalance_ratio,
+                      n_trials,
+                      save_file="",
+                      cv_fold=10):
+    print(" # Optuna parameters search")
+    data = {
+        'x': dd.values,
+        'y': labels.values,
+    }
+    optuna.logging.set_verbosity(optuna.logging.CRITICAL)
+    pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)
+    objective = Objective_xgboost_f1(data)
+    study = optuna.create_study(pruner=pruner, direction='maximize')
+    study.optimize(objective, n_trials=n_trials, n_jobs=-1)
+    print(" # Optuna best trial score")
+    print_obj(study.best_trial.value)
+    print(" # Optuna best params")
+    print_obj(study.best_params)
+    model = xgb.XGBClassifier(**study.best_params,
+                              scale_pos_weight=imbalance_ratio)
+
+    # compute performance of the model
+    results = model_scores(data, model, cv_fold)
+
+    print_obj(results)
+    for r, a in results.items():
+        print("%s : %f" % (r, a.mean()))
+
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=cv_fold)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
@@ -464,7 +526,8 @@ def optuna_lightgbm_accuracy(dd,
                              labels,
                              imbalance_ratio,
                              n_trials,
-                             save_file=""):
+                             save_file="",
+                             cv_fold=10):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -481,12 +544,12 @@ def optuna_lightgbm_accuracy(dd,
     print_obj(study.best_params)
     model = lgb.LGBMClassifier(**study.best_params,
                                scale_pos_weight=imbalance_ratio)
-    results = model_scores(data, model, 10)
+    results = model_scores(data, model, cv_fold)
     print_obj(results)
     for r, a in results.items():
         print("%s : %f" % (r, a.mean()))
 
-    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=cv_fold)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
@@ -521,7 +584,8 @@ def optuna_catboost_accuracy(dd,
                              labels,
                              imbalance_ratio,
                              n_trials,
-                             save_file=""):
+                             save_file="",
+                             cv_fold=10):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -539,12 +603,12 @@ def optuna_catboost_accuracy(dd,
     model = cb.CatBoostClassifier(**study.best_params,
                                   scale_pos_weight=imbalance_ratio,
                                   silent=True)
-    results = model_scores(data, model, 10)
+    results = model_scores(data, model, cv_fold)
     print_obj(results)
     for r, a in results.items():
         print("%s : %f" % (r, a.mean()))
 
-    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=cv_fold)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
@@ -575,7 +639,12 @@ def optuna_catboost_accuracy(dd,
     return model
 
 
-def optuna_RF_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
+def optuna_RF_accuracy(dd,
+                       labels,
+                       imbalance_ratio,
+                       n_trials,
+                       save_file="",
+                       cv_fold=10):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -596,12 +665,12 @@ def optuna_RF_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     model = RandomForestClassifier(**study.best_params,
                                    n_estimators=100,
                                    class_weight=class_weight)
-    results = model_scores(data, model, 10)
+    results = model_scores(data, model, cv_fold)
     print_obj(results)
     for r, a in results.items():
         print("%s : %f" % (r, a.mean()))
 
-    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=cv_fold)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
@@ -632,7 +701,12 @@ def optuna_RF_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     return model
 
 
-def optuna_DT_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
+def optuna_DT_accuracy(dd,
+                       labels,
+                       imbalance_ratio,
+                       n_trials,
+                       save_file="",
+                       cv_fold=10):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -652,12 +726,12 @@ def optuna_DT_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
         class_weight = "balanced"
     model = tree.DecisionTreeClassifier(**study.best_params,
                                         class_weight=class_weight)
-    results = model_scores(data, model, 10)
+    results = model_scores(data, model, cv_fold)
     print_obj(results)
     for r, a in results.items():
         print("%s : %f" % (r, a.mean()))
 
-    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=cv_fold)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
@@ -692,7 +766,8 @@ def optuna_Adaboost_accuracy(dd,
                              labels,
                              imbalance_ratio,
                              n_trials,
-                             save_file=""):
+                             save_file="",
+                             cv_fold=10):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -711,12 +786,12 @@ def optuna_Adaboost_accuracy(dd,
     if 'imbalance_ratio' != 1:
         class_weight = "balanced"
     model = AdaBoostClassifier(**study.best_params, n_estimators=100)
-    results = model_scores(data, model, 10)
+    results = model_scores(data, model, cv_fold)
     print_obj(results)
     for r, a in results.items():
         print("%s : %f" % (r, a.mean()))
 
-    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=cv_fold)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
@@ -747,7 +822,12 @@ def optuna_Adaboost_accuracy(dd,
     return model
 
 
-def optuna_SVC_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
+def optuna_SVC_accuracy(dd,
+                        labels,
+                        imbalance_ratio,
+                        n_trials,
+                        save_file="",
+                        cv_fold=10):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -766,12 +846,12 @@ def optuna_SVC_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     if 'imbalance_ratio' != 1:
         class_weight = "balanced"
     model = SVC(**study.best_params, class_weight=class_weight)
-    results = model_scores(data, model, 10)
+    results = model_scores(data, model, cv_fold)
     print_obj(results)
     for r, a in results.items():
         print("%s : %f" % (r, a.mean()))
 
-    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=cv_fold)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
@@ -804,7 +884,12 @@ def optuna_SVC_accuracy(dd, labels, imbalance_ratio, n_trials, save_file=""):
     return model
 
 
-def optuna_xgboost_cv(dd, labels, imbalance_ratio, n_trials, save_file=""):
+def optuna_xgboost_cv(dd,
+                      labels,
+                      imbalance_ratio,
+                      n_trials,
+                      save_file="",
+                      cv_fold=10):
     print(" # Optuna parameters search")
     data = {
         'x': dd.values,
@@ -822,12 +907,12 @@ def optuna_xgboost_cv(dd, labels, imbalance_ratio, n_trials, save_file=""):
     print_obj(study.best_params)
     model = xgb.XGBClassifier(**study.best_params,
                               scale_pos_weight=imbalance_ratio)
-    results = model_scores(data, model, 10)
+    results = model_scores(data, model, cv_fold)
     print_obj(results)
     for r, a in results.items():
         print("%s : %f" % (r, a.mean()))
 
-    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=10)
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=cv_fold)
     print(" # Confusion matrix")
     print_obj(confusion_matrix(data['y'].ravel(), y_pred))
 
