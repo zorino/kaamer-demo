@@ -85,25 +85,14 @@ def ancom_test(dd, labels):
 
 def features_stat(dd, labels):
 
-    samples_pos_labels = labels[labels.surpoids == 1].index
-    samples_neg_labels = labels[labels.surpoids == 0].index
+    samples_pos_labels = labels[labels.iloc[:, 0] == 1].index
+    samples_neg_labels = labels[labels.iloc[:, 0] == 0].index
+
     dd_pos = dd.loc[samples_pos_labels]
     dd_neg = dd.loc[samples_neg_labels]
 
-    # print("POS = overweight")
-    # print(dd_pos.head(n=20))
-
-    # print("NEG = heathy")
-    # print(dd_neg.head(n=20))
-
     stats_pos = stat_distribution(dd_pos)
     stats_neg = stat_distribution(dd_neg)
-
-    # plt.figure(figsize=(12, 6))
-    # fig = sns.distplot(stats_pos["ft_count"], kde=True, color="red")
-    # fig = sns.distplot(stats_neg["ft_count"], kde=True, color="blue")
-    # fig.set(xlabel='Number of features', ylabel='Count')
-    # plt.show()
 
     pvals = []
     pvals_stats = {}
@@ -124,12 +113,12 @@ def features_stat(dd, labels):
         pvals_stats[ft] = {
             "ft": ft,
             "pval": p,
-            "mean_overweight": mean_pos,
-            "median_overweight": median_pos,
-            "std_overweight": std_pos,
-            "mean_healthy": mean_neg,
-            "median_healthy": median_neg,
-            "std_healthy": std_neg,
+            "mean_pos": mean_pos,
+            "median_pos": median_pos,
+            "std_pos": std_pos,
+            "mean_neg": mean_neg,
+            "median_neg": median_neg,
+            "std_neg": std_neg,
             "fold_change": (mean_pos / mean_neg)
         }
         pvals.append(p)
@@ -151,33 +140,25 @@ def features_stat(dd, labels):
     pval_box_plot = {
         'feature': [],
         'Relative abundances': [],
-        'Overweight': []
+        labels.columns[0]: []
     }
     for ft in features_good:
         if pvals_stats[ft]["pval_good"] == True and i < max_plot_number:
             i += 1
             pval_box_plot['feature'].extend([ft] * len(dd[ft].values))
             pval_box_plot['Relative abundances'].extend(dd[ft].values)
-            pval_box_plot['Overweight'].extend(labels['surpoids'].values)
+            pval_box_plot[labels.columns[0]].extend(labels.iloc[:, 0])
 
+    # print(pval_box_plot)
     pvals_good_df_box = pd.DataFrame(pval_box_plot)
 
-    # print(pvals_good_df_box[pvals_good_df_box['feature'] == 'Firmicutes'][
-    #     pvals_good_df_box['Overweight'] == 1].head(n=50))
-    # print(pvals_good_df_box[pvals_good_df_box['feature'] == 'Firmicutes'][
-    #     pvals_good_df_box['Overweight'] == 1]
-    #       ['Relative abundances'].values.mean())
-
-    # print(pvals_good_df_box[pvals_good_df_box['feature'] == 'Firmicutes'][
-    #     pvals_good_df_box['Overweight'] == 0]
-    #       ['Relative abundances'].values.mean())
     if len(pvals_good_df_box) > 0:
 
         fig = px.box(
             pvals_good_df_box,
             x='feature',
             y='Relative abundances',
-            color='Overweight',
+            color=labels.columns[0],
             color_discrete_sequence=['#EF553B', '#636EFA'],
         )
         fig.update_traces(quartilemethod="exclusive"
@@ -191,17 +172,22 @@ def features_stat(dd, labels):
 def alpha_diversity_chao1(dd, labels):
     _alpha_diversity = {}
     for index, row in dd.iterrows():
-        # print(index)
-        # print(chao1(row))
         _alpha_diversity[index] = chao1(row)
 
     _dd_alpha_diversity = pd.DataFrame.from_dict(_alpha_diversity,
                                                  orient='index',
                                                  columns=['chao1'])
-    plot_boxplot(_dd_alpha_diversity, 'chao1', labels)
+    samples_pos_labels = labels[labels.iloc[:, 0] == 1].index
+    samples_neg_labels = labels[labels.iloc[:, 0] == 0].index
+    dd_pos = _dd_alpha_diversity.loc[samples_pos_labels]
+    dd_neg = _dd_alpha_diversity.loc[samples_neg_labels]
+    stats_res, p = stats.mannwhitneyu(dd_neg['chao1'], dd_pos['chao1'])
+
+    return _dd_alpha_diversity, p
 
 
 def alpha_diversity_shannon(dd, labels):
+
     _alpha_diversity = {}
     for index, row in dd.iterrows():
         _alpha_diversity[index] = shannon(row)
@@ -209,7 +195,14 @@ def alpha_diversity_shannon(dd, labels):
     _dd_alpha_diversity = pd.DataFrame.from_dict(_alpha_diversity,
                                                  orient='index',
                                                  columns=['shannon'])
-    plot_boxplot(_dd_alpha_diversity, 'shannon', labels)
+
+    samples_pos_labels = labels[labels.iloc[:, 0] == 1].index
+    samples_neg_labels = labels[labels.iloc[:, 0] == 0].index
+    dd_pos = _dd_alpha_diversity.loc[samples_pos_labels]
+    dd_neg = _dd_alpha_diversity.loc[samples_neg_labels]
+    stats_res, p = stats.mannwhitneyu(dd_neg['shannon'], dd_pos['shannon'])
+
+    return _dd_alpha_diversity, p
 
 
 def beta_diversity_braycurtis(dd, labels):
