@@ -21,6 +21,7 @@ from sklearn import tree
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedKFold, cross_val_score, cross_val_predict, cross_validate
+from pyscm.scm import SetCoveringMachineClassifier
 
 from .optuna_objective import *
 
@@ -842,6 +843,65 @@ def optuna_xgboost_cv(dd, labels, imbalance_ratio, n_trials, save_file=""):
     # eli5_prediction = eli5.explain_prediction(
     #     model, data['x'][0], feature_names=dd.columns.to_numpy())
     # print(eli5_prediction)
+    display(
+        eli5.show_prediction(model,
+                             data['x'][0],
+                             feature_names=dd.columns.to_numpy(),
+                             show_feature_values=True))
+
+    if save_file != "":
+        save_obj = {
+            "model": model,
+            "cv_results": results,
+            "confusion_matrix": confusion_matrix(data['y'].ravel(), y_pred),
+            "eli5_weights": eli5_weights,
+        }
+        pickle.dump(save_obj, open(save_file, 'wb'))
+
+    return model
+
+
+def optuna_SCM_accuracy(dd,
+                        labels,
+                        imbalance_ratio,
+                        n_trials,
+                        save_file="",
+                        cv_fold=10):
+    print(" # Optuna parameters search")
+    data = {
+        'x': dd.values,
+        'y': labels.values,
+    }
+    optuna.logging.set_verbosity(optuna.logging.CRITICAL)
+    pruner = optuna.pruners.MedianPruner(n_warmup_steps=5)
+    objective = Objective_SCM_accuracy(data)
+    study = optuna.create_study(pruner=pruner, direction='maximize')
+    study.optimize(objective, n_trials=n_trials, n_jobs=-1)
+    print(" # Optuna best trial score")
+    print_obj(study.best_trial.value)
+    print(" # Optuna best params")
+    print_obj(study.best_params)
+    model = SetCoveringMachineClassifier(**study.best_params)
+    results = model_scores(data, model, cv_fold)
+    print_obj(results)
+    for r, a in results.items():
+        print("%s : %f" % (r, a.mean()))
+
+    y_pred = cross_val_predict(model, data['x'], data['y'].ravel(), cv=cv_fold)
+    print(" # Confusion matrix")
+    print_obj(confusion_matrix(data['y'].ravel(), y_pred))
+
+    print(" # ELI5 feature importance")
+    model_fit = model.fit(data['x'], data['y'].ravel())
+    display(eli5.show_weights(model, feature_names=dd.columns.to_numpy()))
+    eli5_weights = eli5.explain_weights(model,
+                                        feature_names=dd.columns.to_numpy())
+    print(eli5_weights)
+
+    # eli5_prediction = eli5.explain_prediction(
+    #     model, data['x'][0], feature_names=dd.columns.to_numpy())
+    # print(eli5_prediction)
+
     display(
         eli5.show_prediction(model,
                              data['x'][0],

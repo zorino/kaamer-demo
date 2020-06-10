@@ -8,6 +8,7 @@ from sklearn import tree
 import xgboost as xgb
 import lightgbm as lgb
 import catboost as cb
+from pyscm.scm import SetCoveringMachineClassifier
 
 import optuna
 
@@ -337,6 +338,35 @@ class Objective_SVC_accuracy(object):
                                          class_weight=class_weight)
 
         score = sklearn.model_selection.cross_val_score(svc_classifier,
+                                                        x,
+                                                        y.ravel(),
+                                                        cv=10)
+        accuracy = score.mean()
+
+        return accuracy
+
+
+class Objective_SCM_accuracy(object):
+    def __init__(self, data):
+        self.data = data
+
+    def __call__(self, trial):
+
+        x, y = self.data['x'], self.data['y']
+
+        param = {
+            'p':
+            trial.suggest_uniform('p', 0.1, 10),
+            'max_rules':
+            trial.suggest_int('max_rules', 1, 12),
+            'model_type':
+            trial.suggest_categorical('model_type',
+                                      ["conjunction", "disjunction"])
+        }
+
+        scm_classifier = SetCoveringMachineClassifier()
+
+        score = sklearn.model_selection.cross_val_score(scm_classifier,
                                                         x,
                                                         y.ravel(),
                                                         cv=10)
